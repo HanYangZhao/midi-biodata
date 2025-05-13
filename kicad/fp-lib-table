@@ -1,0 +1,8 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "midi-jack")(type "KiCad")(uri "${KIPRJMOD}/libs/midi-jack.pretty")(options "")(descr ""))
+  (lib (name "mono-jack")(type "KiCad")(uri "${KIPRJMOD}/libs/mono-jack.pretty")(options "")(descr ""))
+  (lib (name "murata-cstce")(type "KiCad")(uri "${KIPRJMOD}/libs/murata-cstce.pretty")(options "")(descr ""))
+  (lib (name "poma")(type "KiCad")(uri "${KIPRJMOD}/libs/poma.pretty")(options "")(descr ""))
+  (lib (name "pot_switch")(type "KiCad")(uri "${KIPRJMOD}/libs/pot_switch.pretty")(options "")(descr ""))
+)

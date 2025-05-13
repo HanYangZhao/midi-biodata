@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "midi-biodata-v2-rescue")(type "Legacy")(uri "${KIPRJMOD}/midi-biodata-v2-rescue.lib")(options "")(descr ""))
+)
