@@ -4927,7 +4927,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "1uF"
+		(property "Value" "100uF"
 			(at 141.224 40.386 0)
 			(effects
 				(font
@@ -6789,7 +6789,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C85401"
+		(property "LCSC" "C294611"
 			(at 157.48 60.96 0)
 			(effects
 				(font
@@ -6865,7 +6865,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C85401"
+		(property "LCSC" "C294611"
 			(at 168.91 40.64 0)
 			(effects
 				(font
@@ -7038,7 +7038,7 @@
 			)
 		)
 		(property "Value" "+5V"
-			(at 136.398 163.83 0)
+			(at 135.636 163.83 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7110,7 +7110,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x12_P2.54mm_Vertical"
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x13_P2.54mm_Vertical"
 			(at 124.46 153.67 0)
 			(effects
 				(font
@@ -7632,7 +7632,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "584f81e6-a90d-45ce-9213-2f4c02bb9b3b")
+		(uuid "5b4bff50-68e0-4ca6-babb-3534b636c256")
 		(property "Reference" "#PWR09"
 			(at 125.73 166.37 0)
 			(effects
@@ -7642,8 +7642,8 @@
 				(hide yes)
 			)
 		)
-		(property "Value" "+3V3"
-			(at 133.604 166.878 0)
+		(property "Value" "+5V"
+			(at 135.382 166.624 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7678,7 +7678,7 @@
 			)
 		)
 		(pin "1"
-			(uuid "b87b7c46-7cb5-4cc2-89be-285ec43c420f")
+			(uuid "1602e48d-0d44-4ea0-b0ba-da59447ae073")
 		)
 		(instances
 			(project "midi-biodata-v2"
@@ -7793,7 +7793,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "Potentiometer_THT:Potentiometer_Bourns_3296W_Vertical"
+		(property "Footprint" "Potentiometer_THT:Potentiometer_Alps_RK09K_Single_Vertical"
 			(at 137.16 101.6 0)
 			(effects
 				(font
@@ -7812,6 +7812,15 @@
 			)
 		)
 		(property "Description" "Potentiometer"
+			(at 137.16 101.6 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" ""
 			(at 137.16 101.6 0)
 			(effects
 				(font
@@ -8777,6 +8786,71 @@
 			(project "midi-biodata-v2"
 				(path "/0696d548-26ae-48fa-b73e-c6b82482150e"
 					(reference "#PWR014")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "midi-biodata-v2-rescue:GND")
+		(at 129.54 168.91 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "e3defc29-be4d-4f3a-845e-e96eca407ef4")
+		(property "Reference" "#PWR018"
+			(at 135.89 168.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 133.35 168.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 129.54 168.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 129.54 168.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 129.54 168.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "8b532908-2e5e-4a7f-ac13-91ec2fcf98cf")
+		)
+		(instances
+			(project "midi-biodata-v2"
+				(path "/0696d548-26ae-48fa-b73e-c6b82482150e"
+					(reference "#PWR018")
 					(unit 1)
 				)
 			)
