@@ -14,7 +14,7 @@ void thresholdMode() {
     threshold = analogRead(knobPin);
     threshold = mapfloat(threshold, knobMin, knobMax, threshMin, threshMax);
     pulse(value, maxBrightness, (pulseRate / 2));
-    if (threshold != prevThreshold) {
+    if (abs(threshold - prevThreshold) > 0.01) {
       Serial.print("Threshold is :");
       Serial.println(threshold);
       prevThreshold = threshold;
@@ -35,7 +35,21 @@ void thresholdMode() {
   noteLEDs = 1;
   leds[prevValue].stop_fade();
   leds[prevValue].set_value(0);
+  delay(100);
 }
+
+const char* scaleNames[scaleCount] = {
+  "Chromatic",
+  "Ionian (Major)",
+  "Dorian",
+  "Phrygian",
+  "Lydian",
+  "Mixolydian",
+  "Aeolian (Minor)",
+  "Locrian",
+  "Indian 1",
+  "Indian 2"
+};
 
 void scaleMode() {
   int runMode = 1;
@@ -48,8 +62,12 @@ void scaleMode() {
     if (currScale != prevScale) {
       leds[prevScale].stop_fade();
       leds[prevScale].set_value(0);
-      Serial.print("Scale is :");
-      Serial.println(currScale);
+      Serial.print("Scale is : ");
+      if (currScale >= 0 && currScale < scaleCount) {
+        Serial.println(scaleNames[currScale]);
+      } else {
+        Serial.println(currScale);
+      }
     }
     prevScale = currScale;
     checkLED();
@@ -60,8 +78,12 @@ void scaleMode() {
     checkControl();
     runMode = checkButtonToExitMenu();
   }
-  Serial.print("Scale set to :");
-  Serial.println(currScale);
+  Serial.print("Scale set to : ");
+  if (currScale >= 0 && currScale < scaleCount) {
+    Serial.println(scaleNames[currScale]);
+  } else {
+    Serial.println(currScale);
+  }
   EEPROM_writeAnything(1, currScale);
   noteLEDs = 1;
   leds[prevValue].stop_fade();
@@ -126,6 +148,49 @@ void brightnessMode() {
   currMenu = 0;
   if (maxBrightness > 1)
     noteLEDs = 1;
+  leds[prevValue].stop_fade();
+  leds[prevValue].set_value(0);
+}
+
+// Add root note selection mode (MIDI note number)
+const char* noteNames[12] = {
+  "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
+};
+
+void rootNoteMode() {
+  int runMode = 1;
+  int prevRoot = root;
+  while (runMode) {
+    root = analogRead(knobPin);
+    root = map(root, knobMin, knobMax, 21, 109); // MIDI notes 21 (A0) to 108 (C8)
+    if (root < 21) root = 21;
+    if (root > 108) root = 108;
+    int noteIdx = root % 12;
+    int octave = (root / 12) - 1;
+    pulse(noteIdx, maxBrightness, (pulseRate / 2));
+    if (root != prevRoot) {
+      Serial.print("Root note is: ");
+      Serial.print(noteNames[noteIdx + 1]);
+      Serial.println(octave);
+      prevRoot = root;
+    }
+    checkLED();
+    if (index >= samplesize) {
+      analyzeSample();
+    }
+    checkNote();
+    checkControl();
+    runMode = checkButtonToExitMenu();
+    currentMillis = millis();
+  }
+  EEPROM_writeAnything(9, root);
+  int noteIdx = root % 12;
+  int octave = (root / 12) - 1;
+  Serial.print("Root note set to: ");
+  Serial.print(noteNames[noteIdx + 1]);
+  Serial.println(octave);
+  currMenu = 0;
+  noteLEDs = 1;
   leds[prevValue].stop_fade();
   leds[prevValue].set_value(0);
 }

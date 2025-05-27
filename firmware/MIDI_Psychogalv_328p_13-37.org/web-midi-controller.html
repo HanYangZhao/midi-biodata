@@ -107,7 +107,7 @@
           if (value) {
             // Log raw bytes as hex for debugging
             const hexBytes = Array.from(value).map(b => b.toString(16).padStart(2, '0')).join(' ');
-            logPlaintext('Raw bytes: ' + hexBytes);
+            // logPlaintext('Raw bytes: ' + hexBytes); // Commented out as requested
             processIncomingData(value);
           }
         } catch (error) {

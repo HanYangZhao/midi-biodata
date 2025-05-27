@@ -17,19 +17,11 @@ void setNote(int value, int velocity, long duration, int notechannel) {
       }
 
       if (noteLEDs == 1) {
-        for (byte j = 0; j < (LED_NUM - 1); j++) {
-          if (!leds[j].is_fading()) {
-            rampUp(i, maxBrightness, duration);
-            break;
-          }
-        }
+
+        rampUp(i, maxBrightness, duration);
+
       } else if (noteLEDs == 2) {
-        for (byte j = 1; j < (LED_NUM - 1); j++) {
-          if (!leds[j].is_fading()) {
-            rampUp(i, maxBrightness, duration);
-            break;
-          }
-        }
+        rampUp(i + 1, maxBrightness, duration);
       }
       break;
     }

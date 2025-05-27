@@ -14,7 +14,7 @@
 extern MIDI_NAMESPACE::MidiInterface<MIDI_NAMESPACE::SerialMIDI<HardwareSerial>> MIDI;
 
 // Scale constants
-const int scaleCount = 4;
+const int scaleCount = 10;
 const int scaleLen = 13; // maximum scale length plus 1 for 'used length'
 
 // Scale arrays

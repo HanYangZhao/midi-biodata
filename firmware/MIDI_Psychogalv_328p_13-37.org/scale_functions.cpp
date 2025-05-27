@@ -20,6 +20,6 @@ int scaleNote_fast(int note, int root) {
   int octave = note / 12;
   int scalesize = (scale[currScale][0]);
   scaled = scaleSearch(scaled, scale[currScale], scalesize);
-  scaled = (scaled + (12 * octave)) + root;
+  scaled = (scaled + (12 * octave)) + (root % 12);
   return scaled;
 }

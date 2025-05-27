@@ -7,9 +7,15 @@ MIDI_CREATE_DEFAULT_INSTANCE();
 // Scale arrays
 int scale[scaleCount][scaleLen] = {
   {12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}, // Chromatic
-  {7, 1, 3, 5, 6, 8, 10, 12},                   // Major
-  {7, 1, 2, 2, 5, 6, 9, 11},                    // Indian
-  {7, 1, 3, 4, 6, 8, 9, 11}                     // Minor
+  {7, 1, 3, 5, 6, 8, 10, 12},                  // Ionian (Major)
+  {7, 1, 3, 4, 6, 8, 10, 12},                  // Dorian
+  {7, 1, 2, 4, 6, 8, 9, 11},                   // Phrygian
+  {7, 1, 3, 5, 7, 8, 10, 12},                  // Lydian
+  {7, 1, 3, 5, 6, 8, 10, 11},                  // Mixolydian
+  {7, 1, 3, 4, 6, 8, 9, 11},                   // Aeolian (Minor)
+  {7, 1, 2, 4, 6, 7, 9, 11},                   // Locrian
+  {7, 1, 2, 4, 6, 7, 9, 11},                   // Indian (example: Raga Bhairav)
+  {7, 1, 2, 5, 6, 8, 9, 12}                    // Example: Indian (Raga Bilawal, or user can specify)
 };
 
 // Global variables

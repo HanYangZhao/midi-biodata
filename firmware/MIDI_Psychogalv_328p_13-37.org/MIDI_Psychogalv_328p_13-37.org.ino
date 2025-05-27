@@ -92,6 +92,11 @@ void loop() {
         Serial.println("Mode Brightness");
         brightnessMode();
         break;
+      case '5':
+        currMenu = 5;
+        Serial.println("Mode Root Note");
+        rootNoteMode();
+        break;
       default:
         break;
     }
