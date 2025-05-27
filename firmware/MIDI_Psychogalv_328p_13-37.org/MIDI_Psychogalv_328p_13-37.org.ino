@@ -14,10 +14,14 @@
 
 #include <EEPROM.h>
 #include <LEDFader.h> //manage LEDs without delay() jgillick/arduino-LEDFader https://github.com/jgillick/arduino-LEDFader.git
+#include <MIDI.h> // Include the Arduino MIDI library
 
-//#define DEBUG
+// #define DEBUG
 #define SCHEMA 0x02
 #define BUTTON_DEBOUNCE 100
+
+// Create a default MIDI interface instance
+MIDI_CREATE_DEFAULT_INSTANCE();
 
 //******************************
 //set scaled values, sorted array, first element scale length
@@ -125,6 +129,7 @@ void setup()
 #else
   Serial.begin(31250);  //initialize at MIDI rate
 #endif
+  MIDI.begin(); // Initialize the MIDI library
   controlMessage.value = 0;  //begin CV at 0
   //MIDIpanic(); //dont panic, unless you are sure it is nessisary
   checkBattery(); // shut off lightshow if power is too low
@@ -162,6 +167,43 @@ void loop()
   checkNote();  //turn off expired notes
   checkControl();  //update control value
   checkLED();  //LED management without delay()
+
+  // Serial input to select modes since button may not be installed
+  if (Serial.available() > 0) {
+    char input = Serial.read();
+    switch (input) {
+      case '0':
+        currMenu = 0; // Main program
+        noteLEDs = 1;
+        Serial.println("Mode 0");
+        break;
+      case '1':
+        currMenu = 1; // Threshold mode
+        Serial.println("Mode threshold");
+        thresholdMode();
+
+        break;
+      case '2':
+        currMenu = 2; // Scale mode
+        Serial.println("Mode scale");
+        scaleMode();
+        break;
+      case '3':
+        currMenu = 3; // Channel mode
+        Serial.println("Mode Channel");
+        channelMode();
+
+        break;
+      case '4':
+        currMenu = 4; // Brightness mode
+        Serial.println("Mode Brightness");
+        brightnessMode();
+
+        break;
+      default:
+        break;
+    }
+  }
 
   if ((currentMillis - buttonPressed ) < 100) {
     checkButton();
@@ -310,10 +352,10 @@ void setNote(int value, int velocity, long duration, int notechannel) {
       noteArray[i].channel = notechannel;
 
       if (QY8) {
-        midiSerial(144, notechannel, value, velocity);
+        MIDI.sendNoteOn(value, velocity, notechannel);
       }
       else {
-        midiSerial(144, channel, value, velocity);
+        MIDI.sendNoteOn(value, velocity, channel);
       }
 
       if (noteLEDs == 1) { //normal mode
@@ -365,7 +407,7 @@ void checkControl()
       }
 
       //send MIDI control message after ramp duration expires, on each increment
-      midiSerial(176, channel, controlMessage.type, controlMessage.value);
+      MIDI.sendControlChange(controlMessage.type, controlMessage.value, channel);
 
       //send out control voltage message on pin 17, PB3, digital 11
       if (controlVoltage) {
@@ -387,10 +429,10 @@ void checkNote()
       if (noteArray[i].duration <= currentMillis) {
         //send noteOff for all notes with expired duration
         if (QY8) {
-          midiSerial(144, noteArray[i].channel, noteArray[i].value, 0);
+          MIDI.sendNoteOn(noteArray[i].value, 0, noteArray[i].channel);
         }
         else {
-          midiSerial(144, channel, noteArray[i].value, 0);
+          MIDI.sendNoteOn(noteArray[i].value, 0, channel);
         }
         noteArray[i].velocity = 0;
         if (noteLEDs == 1) rampDown(i, 0, 225);
@@ -409,12 +451,12 @@ void MIDIpanic()
   //brute force all notes Off
   for (byte i = 1; i < 128; i++) {
     delay(1); //don't choke on note offs!
-    midiSerial(144, channel, i, 0); //clear notes on main channel
+    MIDI.sendNoteOn(i, 0, channel); //clear notes on main channel
 
     if (QY8) { //clear on all four channels
       for (byte k = 1; k < 5; k++) {
         delay(1); //don't choke on note offs!
-        midiSerial(144, k, i, 0);
+        MIDI.sendNoteOn(i, 0, k);
       }
     }
   }
@@ -474,15 +516,26 @@ void checkLED() {
   }
 }
 
+
 int checkButtonToExitMenu() {
-  //if (bitRead(PINB, 5) == LOW) {
-  if (digitalRead(buttonPin) == LOW) {
-    delay(BUTTON_DEBOUNCE);
-    //if (bitRead(PINB, 5) == LOW) {
-    if (digitalRead(buttonPin) == LOW) {
-      return 0;
+  // Check for serial input to exit menu
+  if (Serial.available() > 0) {
+    char input = Serial.read();
+    if (input == '0' || input == 'q' || input == 'Q') {
+      return 0; // Exit menu
     }
   }
+  
+  // Check for button press to exit menu
+  //if (bitRead(PINB, 5) == LOW) {
+
+  // if (digitalRead(buttonPin) == LOW) {
+  //   delay(BUTTON_DEBOUNCE);
+  //   //if (bitRead(PINB, 5) == LOW) {
+  //   if (digitalRead(buttonPin) == LOW) {
+  //     return 0;
+  //   }
+  // }
   return 1;
 }
 
@@ -492,7 +545,6 @@ void checkMenu() {
 
   //scale knob value against number of menus
   value = map(value, knobMin, knobMax, 0, menus); //value is now menu index
-
   //set LEDs to flash based on value
   if (value != prevValue) { //a change in value
     //clear out prevValue LED
@@ -526,7 +578,6 @@ void checkMenu() {
     leds[prevValue].stop_fade();
     leds[prevValue].set_value(0);
   }
-
 }
 
 
@@ -604,13 +655,18 @@ float mapfloat(float x, float in_min, float in_max, float out_min, float out_max
 void thresholdMode() {
   int runMode = 1;
   noteLEDs = 2; //turn on special Note visualization for feedback on threshold effect
+  float prevThreshold = 0;
   while (runMode) {
     //float knobValue
     threshold = analogRead(knobPin);
     //set threshold to knobValue mapping
     threshold = mapfloat(threshold, knobMin, knobMax, threshMin, threshMax);
     pulse(value, maxBrightness, (pulseRate / 2)); //pulse for current menu
-
+    if(threshold != prevThreshold){
+      Serial.print("Theshold is :");
+      Serial.println(threshold);
+      prevThreshold = threshold;
+    }
     checkLED();
     if (index >= samplesize)  {
       analyzeSample();  //keep samples running
@@ -621,7 +677,10 @@ void thresholdMode() {
     runMode = checkButtonToExitMenu();
 
     currentMillis = millis();
+
   }
+  Serial.print("Theshold set to :");
+  Serial.println(threshold);
   EEPROM_writeAnything(7, threshold); // threshold default value
 
   currMenu = 0; //return to main program
@@ -645,6 +704,8 @@ void scaleMode() {
     if (currScale != prevScale) { //clear last value if change
       leds[prevScale].stop_fade();
       leds[prevScale].set_value(0);
+      Serial.print("Scale is :");
+      Serial.println(currScale);
     }
     prevScale = currScale;
 
@@ -657,6 +718,8 @@ void scaleMode() {
 
     runMode = checkButtonToExitMenu();
   }  //after button press retain threshold setting
+  Serial.print("Scale set to :");
+  Serial.println(currScale);
   EEPROM_writeAnything(1, currScale); // curScale default value
   noteLEDs = 1; //normal light show
   leds[prevValue].stop_fade();
@@ -682,6 +745,8 @@ void channelMode() {
     if (prevChannel != channel) {
       channel = map(channel, knobMin, knobMax, 1, 17);
       displayChannel(channel);
+      Serial.print("Channel is :");
+      Serial.println(channel);
     }
     if (index >= samplesize)  {
       analyzeSample();  //keep samples running
@@ -691,6 +756,8 @@ void channelMode() {
     runMode = checkButtonToExitMenu();
   }  //after button press retain channel setting
   EEPROM_writeAnything(5, channel); // MIDI channel default value
+  Serial.print("Channel set to :");
+  Serial.println(channel);
   currMenu = 0; //return to main program
   noteLEDs = 1; //normal light show
   for (int i =0; i<5;i++) {
@@ -705,6 +772,8 @@ void brightnessMode() {
     maxBrightness = analogRead(knobPin);
     //set led maxBrightness
     maxBrightness = map(maxBrightness, knobMin, knobMax, 1, 255);
+    Serial.print("Brightness is: ");
+    Serial.println(maxBrightness);
 
     if (maxBrightness > 1) pulse(value, maxBrightness, (pulseRate / 2)); //pulse for current menu
     else pulse(value, 1, (pulseRate / 6)); //fast dim pulse for 0 note lightshow
@@ -720,6 +789,8 @@ void brightnessMode() {
     currentMillis = millis();
   }  //after button press retain threshold setting
   EEPROM_writeAnything(3, maxBrightness);
+  Serial.print("maxBrightness set to :");
+  Serial.println(maxBrightness);
   currMenu = 0; //return to main program
   if (maxBrightness > 1) noteLEDs = 1; //normal light show, unles lowest value
   leds[prevValue].stop_fade();
@@ -764,6 +835,21 @@ void analyzeSample()
 
     delta = maxim - minim;
 
+// #ifdef DEBUG
+//     Serial.print("DEBUG: averg=");
+//     Serial.print(averg);
+//     Serial.print(", stdevi=");
+//     Serial.print(stdevi);
+//     Serial.print(", minim=");
+//     Serial.print(minim);
+//     Serial.print(", maxim=");
+//     Serial.print(maxim);
+//     Serial.print(", delta=");
+//     Serial.print(delta);
+//     Serial.print(", threshold=");
+//     Serial.println(threshold);
+// #endif
+
     //**********perform change detection
     if (delta > (stdevi * threshold)) {
       change = 1;
@@ -780,6 +866,16 @@ void analyzeSample()
       setnote = scaleNote_fast(setnote, root);  //scale the note
       //setnote = scaleNote_slow(setnote, scale[currScale], root);  //scale the note
       // setnote = setnote + root; // (apply root?)
+
+#ifdef DEBUG
+      Serial.print("DEBUG: setNote params - Note: ");
+      Serial.print(setnote);
+      Serial.print(", Velocity: 100, Duration: ");
+      Serial.print(dur);
+      Serial.print(", Channel: ");
+      Serial.println(notechannel);
+#endif
+
       if (QY8) {
         setNote(setnote, 100, dur, notechannel);  //set for QY8 mode
       }
@@ -787,22 +883,20 @@ void analyzeSample()
         setNote(setnote, 100, dur, channel);
       }
 
-      //derive control parameters and set
+#ifdef DEBUG
+      Serial.print("DEBUG: setControl params - ControlNumber: ");
+      Serial.print(controlNumber);
+      Serial.print(", Value: ");
+      Serial.print(controlMessage.value);
+      Serial.print(", Velocity: ");
+      Serial.print(delta % 127);
+      Serial.print(", Ramp: ");
+      Serial.println(ramp);
+#endif
+
       setControl(controlNumber, controlMessage.value, delta % 127, ramp); //set the ramp rate for the control
     }
 
-    /*#ifdef DEBUG
-      Serial.print("averg:");
-      Serial.println(averg);
-      Serial.print("stdevi:");
-      Serial.println(stdevi);
-      Serial.print("minim:");
-      Serial.println(minim);
-      Serial.print("maxim:");
-      Serial.println(maxim);
-      Serial.print("change:");
-      Serial.println(change);
-      #endif*/
     //reset array for next sample
     index = 0;
   }

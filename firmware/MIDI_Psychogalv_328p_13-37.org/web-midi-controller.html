@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MIDI Psychogalv Controller</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    button { margin: 5px; padding: 10px 20px; font-size: 16px; }
+    #plaintextLog, #midiLog {
+      margin-top: 20px;
+      white-space: pre-wrap;
+      background: #f0f0f0;
+      padding: 10px;
+      height: 200px;
+      overflow-y: scroll;
+      border: 1px solid #ccc;
+    }
+    #container {
+      display: flex;
+      gap: 20px;
+    }
+    #plaintextContainer, #midiContainer {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    h2 {
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>MIDI Psychogalv Controller</h1>
+  <button id="connect">Connect Serial</button>
+  <div>
+    <button data-mode="1">Enable Threshold Mode</button>
+    <button data-mode="2">Enable Scale Mode</button>
+    <button data-mode="3">Enable Channel Mode</button>
+    <button data-mode="4">Enable Brightness Mode</button>
+    <button id="exitMode">Exit Mode</button>
+  </div>
+
+  <div id="container">
+    <div id="plaintextContainer">
+      <h2>Plaintext Log</h2>
+      <div id="plaintextLog"></div>
+    </div>
+    <div id="midiContainer">
+      <h2>MIDI Log</h2>
+      <div id="midiLog"></div>
+    </div>
+  </div>
+
+  <script>
+    let port;
+    let reader;
+    let inputDone;
+    let outputDone;
+    let outputStream;
+    const plaintextLogElem = document.getElementById('plaintextLog');
+    const midiLogElem = document.getElementById('midiLog');
+
+    function logPlaintext(text) {
+      // Replace escaped newline sequences with actual newlines for readability
+      const formattedText = text.replace(/\\n/g, '\n');
+      plaintextLogElem.textContent += formattedText + '\n';
+      plaintextLogElem.scrollTop = plaintextLogElem.scrollHeight;
+    }
+
+    function logMidi(text) {
+      // Replace escaped newline sequences with actual newlines for readability
+      const formattedText = text.replace(/\\n/g, '\n');
+      midiLogElem.textContent += formattedText + '\n';
+      midiLogElem.scrollTop = midiLogElem.scrollHeight;
+    }
+
+    async function connect() {
+      try {
+        port = await navigator.serial.requestPort();
+        await port.open({ baudRate: 31250 }); // MIDI baud rate
+
+        logPlaintext('Serial port opened.');
+
+        // Remove incorrect assignment of outputDone and outputStream
+        // Instead, just keep port.writable for writing
+        // outputDone = port.writable.getWriter();
+        // outputStream = port.writable;
+
+        readLoop();
+      } catch (error) {
+        logPlaintext('Error: ' + error);
+      }
+    }
+
+    async function readLoop() {
+      const reader = port.readable.getReader();
+      let buffer = [];
+      while (true) {
+        try {
+          const { value, done } = await reader.read();
+          if (done) {
+            logPlaintext('Reader closed');
+            reader.releaseLock();
+            break;
+          }
+          if (value) {
+            // Log raw bytes as hex for debugging
+            const hexBytes = Array.from(value).map(b => b.toString(16).padStart(2, '0')).join(' ');
+            logPlaintext('Raw bytes: ' + hexBytes);
+            processIncomingData(value);
+          }
+        } catch (error) {
+          logPlaintext('Read error: ' + error);
+          break;
+        }
+      }
+    }
+
+    // Helper to check if a byte is printable ASCII
+    function isPrintableAscii(byte) {
+      return byte >= 0x20 && byte <= 0x7E;
+    }
+
+    // Buffer for MIDI message parsing
+    let midiBuffer = [];
+    let runningStatus = null;
+
+    let asciiBuffer = '';
+
+    function processIncomingData(data) {
+      // data is a Uint8Array
+      for (let i = 0; i < data.length; i++) {
+        const byte = data[i];
+        if (isPrintableAscii(byte)) {
+          // Accumulate printable ASCII characters into a buffer
+          asciiBuffer += String.fromCharCode(byte);
+          // If newline detected, flush buffer to log
+          if (byte === 10 || byte === 13) { // LF or CR
+            if (asciiBuffer.trim().length > 0) {
+              logPlaintext(asciiBuffer.trim());
+            }
+            asciiBuffer = '';
+          }
+        } else {
+          // Flush any buffered ASCII before processing MIDI bytes
+          if (asciiBuffer.length > 0) {
+            logPlaintext(asciiBuffer.trim());
+            asciiBuffer = '';
+          }
+          // Non-printable - treat as MIDI data
+          if (byte & 0x80) {
+            // Status byte
+            runningStatus = byte;
+            midiBuffer = [byte];
+          } else {
+            // Data byte
+            if (runningStatus === null) {
+              // No running status, discard byte
+              continue;
+            }
+            midiBuffer.push(byte);
+          }
+
+          // MIDI messages are 3 bytes: status, data1, data2
+          if (midiBuffer.length === 3) {
+            const status = midiBuffer[0];
+            const data1 = midiBuffer[1];
+            const data2 = midiBuffer[2];
+            // Only parse if all are valid MIDI bytes
+            if ((status & 0x80) && data1 < 0x80 && data2 < 0x80) {
+              logPlaintext(`Parsed MIDI: status=0x${status.toString(16)}, data1=0x${data1.toString(16)}, data2=0x${data2.toString(16)}`);
+              if ((status & 0xF0) === 0x90) { // Note On
+                if (data2 === 0) {
+                  logMidi(`Note Off - Channel: ${(status & 0x0F) + 1}, Note: ${data1}, Velocity: ${data2}`);
+                } else {
+                  logMidi(`Note On - Channel: ${(status & 0x0F) + 1}, Note: ${data1}, Velocity: ${data2}`);
+                }
+              } else if ((status & 0xF0) === 0x80) { // Note Off
+                logMidi(`Note Off - Channel: ${(status & 0x0F) + 1}, Note: ${data1}, Velocity: ${data2}`);
+              } else if ((status & 0xF0) === 0xB0) { // Control Change
+                logMidi(`Control Change - Channel: ${(status & 0x0F) + 1}, Controller: ${data1}, Value: ${data2}`);
+              } else {
+                // Unknown message type
+                logMidi(`Unknown MIDI message: ${status.toString(16)} ${data1} ${data2}`);
+              }
+            }
+            midiBuffer = [runningStatus]; // Prepare for next message with running status
+          }
+        }
+      }
+    }
+
+    async function sendCommand(cmd) {
+      if (!port || !port.writable) {
+        logPlaintext('Not connected to serial port.');
+        return;
+      }
+      const writer = port.writable.getWriter();
+      const data = new TextEncoder().encode(cmd + '\\n'); // Append newline to ensure command is recognized
+      await writer.write(data);
+      writer.releaseLock();
+      logPlaintext('Sent command: ' + cmd);
+    }
+
+    document.getElementById('connect').addEventListener('click', () => {
+      connect();
+    });
+
+    document.querySelectorAll('button[data-mode]').forEach(button => {
+      button.addEventListener('click', () => {
+        const mode = button.getAttribute('data-mode');
+        sendCommand(mode);
+      });
+    });
+
+    document.getElementById('exitMode').addEventListener('click', () => {
+      sendCommand('0');
+    });
+  </script>
+</body>
+</html>
