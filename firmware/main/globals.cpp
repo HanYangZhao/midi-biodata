@@ -6,16 +6,16 @@ MIDI_CREATE_DEFAULT_INSTANCE();
 
 // Scale arrays
 int scale[scaleCount][scaleLen] = {
-  {12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}, // Chromatic
-  {7, 1, 3, 5, 6, 8, 10, 12},                  // Ionian (Major)
-  {7, 1, 3, 4, 6, 8, 10, 12},                  // Dorian
-  {7, 1, 2, 4, 6, 8, 9, 11},                   // Phrygian
-  {7, 1, 3, 5, 7, 8, 10, 12},                  // Lydian
-  {7, 1, 3, 5, 6, 8, 10, 11},                  // Mixolydian
-  {7, 1, 3, 4, 6, 8, 9, 11},                   // Aeolian (Minor)
-  {7, 1, 2, 4, 6, 7, 9, 11},                   // Locrian
-  {7, 1, 2, 4, 6, 7, 9, 11},                   // Indian (example: Raga Bhairav)
-  {7, 1, 2, 5, 6, 8, 9, 12}                    // Example: Indian (Raga Bilawal, or user can specify)
+  {12, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, // Chromatic (0-based)
+  {7, 0, 2, 4, 5, 7, 9, 11},                  // Ionian (Major)
+  {7, 0, 2, 3, 5, 7, 9, 10},                  // Dorian
+  {7, 0, 1, 3, 5, 7, 8, 10},                  // Phrygian
+  {7, 0, 2, 4, 6, 7, 9, 11},                  // Lydian
+  {7, 0, 2, 4, 5, 7, 9, 10},                  // Mixolydian
+  {7, 0, 2, 3, 5, 7, 8, 10},                  // Aeolian (Minor)
+  {7, 0, 1, 3, 5, 6, 8, 10},                  // Locrian
+  {7, 0, 1, 4, 5, 7, 8, 11},                  // Indian (example: Raga Bhairav)
+  {7, 0, 1, 4, 5, 7, 8, 11}                   // Example: Indian (Raga Bilawal, or user can specify)
 };
 
 // Global variables
@@ -29,7 +29,6 @@ int root = 0;
 
 const byte interruptPin = INT0;
 const byte knobPin = A0;
-const byte buttonPin = 13;
 int menus = 4;
 int mode = 0;
 int currMenu = 0;
@@ -45,7 +44,6 @@ int noteMax = 96;
 byte QY8 = 0;
 byte controlNumber = 80;
 byte controlVoltage = 1;
-long batteryLimit = 3000;
 byte checkBat = 1;
 
 byte timeout = 0;
@@ -63,8 +61,6 @@ unsigned long previousMillis = 0;
 unsigned long previousButtonMillis = 0;
 unsigned long currentMillis = 1;
 
-unsigned long batteryCheck = 5000;
-unsigned long menuTimeout = 5000;
 
 unsigned long buttonPressed = 0;
 

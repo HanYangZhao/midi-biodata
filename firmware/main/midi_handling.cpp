@@ -1,6 +1,17 @@
 #include "midi_handling.h"
 #include "led_control.h"
 
+void debugPrintNote(int value, int velocity, int notechannel) {
+#if defined(ARDUINO_AVR_MEGA2560)
+  Serial1.print("Note : value=");
+  Serial1.print(value);
+  Serial1.print(" channel=");
+  Serial1.print(notechannel);
+  Serial1.print(" velocity=");
+  Serial1.println(velocity);
+#endif
+}
+
 void setNote(int value, int velocity, long duration, int notechannel) {
   for (int i = 0; i < polyphony; i++) {
     if (!noteArray[i].velocity) {
@@ -9,6 +20,8 @@ void setNote(int value, int velocity, long duration, int notechannel) {
       noteArray[i].velocity = velocity;
       noteArray[i].duration = currentMillis + duration;
       noteArray[i].channel = notechannel;
+
+      debugPrintNote(value, velocity, notechannel);
 
       if (QY8) {
         MIDI.sendNoteOn(value, velocity, notechannel);
@@ -62,10 +75,11 @@ void checkNote() {
   for (int i = 0; i < polyphony; i++) {
     if (noteArray[i].velocity) {
       if (noteArray[i].duration <= currentMillis) {
+        debugPrintNote(noteArray[i].value, 0, noteArray[i].channel);
         if (QY8) {
-          MIDI.sendNoteOn(noteArray[i].value, 0, noteArray[i].channel);
+          MIDI.sendNoteOff(noteArray[i].value, 0, noteArray[i].channel);
         } else {
-          MIDI.sendNoteOn(noteArray[i].value, 0, channel);
+          MIDI.sendNoteOff(noteArray[i].value, 0, channel);
         }
         noteArray[i].velocity = 0;
         if (noteLEDs == 1) rampDown(i, 0, 225);
@@ -78,11 +92,11 @@ void checkNote() {
 void MIDIpanic() {
   for (byte i = 1; i < 128; i++) {
     delay(1);
-    MIDI.sendNoteOn(i, 0, channel);
+    MIDI.sendNoteOff(i, 0, channel);
     if (QY8) {
       for (byte k = 1; k < 5; k++) {
         delay(1);
-        MIDI.sendNoteOn(i, 0, k);
+        MIDI.sendNoteOff(i, 0, k);
       }
     }
   }

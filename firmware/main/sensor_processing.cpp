@@ -17,22 +17,6 @@ long readVcc() {
   return result;
 }
 
-void checkBattery() {
-  if (batteryCheck < currentMillis) {
-    batteryCheck = currentMillis + 10000;
-    if (readVcc() < batteryLimit) {
-      if (checkBat) {
-        for (byte j = 0; j < LED_NUM; j++) {
-          leds[j].stop_fade();
-          leds[j].set_value(0);
-        }
-        noteLEDs = 0;
-        checkBat = 0;
-      }
-    }
-  }
-}
-
 void analyzeSample() {
   unsigned long averg = 0;
   unsigned long maxim = 0;
@@ -73,7 +57,7 @@ void analyzeSample() {
       int notechannel = random(1, 5);
 
       int setnote = map(averg % 127, 1, 127, noteMin, noteMax);
-      setnote = scaleNote_fast(setnote, root);
+      setnote = scaleNote_fast(setnote, root, currScale);
 
       if (QY8) {
         setNote(setnote, 100, dur, notechannel);

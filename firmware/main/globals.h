@@ -8,7 +8,6 @@
 
 // Constants
 #define SCHEMA 0x02
-#define BUTTON_DEBOUNCE 100
 #define LED_NUM 6
 
 extern MIDI_NAMESPACE::MidiInterface<MIDI_NAMESPACE::SerialMIDI<HardwareSerial>> MIDI;
@@ -31,7 +30,6 @@ extern int root;
 
 extern const byte interruptPin;
 extern const byte knobPin;
-extern const byte buttonPin;
 extern int menus;
 extern int mode;
 extern int currMenu;
@@ -47,7 +45,6 @@ extern int noteMax;
 extern byte QY8;
 extern byte controlNumber;
 extern byte controlVoltage;
-extern long batteryLimit;
 extern byte checkBat;
 
 extern byte timeout;
@@ -67,8 +64,6 @@ extern unsigned long previousMillis;
 extern unsigned long previousButtonMillis;
 extern unsigned long currentMillis;
 
-extern unsigned long batteryCheck;
-extern unsigned long menuTimeout;
 
 extern LEDFader leds[LED_NUM];
 extern int ledNums[LED_NUM];

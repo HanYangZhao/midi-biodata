@@ -3,7 +3,6 @@
 
 #include "globals.h"
 
-void checkBattery();
 void analyzeSample();
 
 #endif // SENSOR_PROCESSING_H

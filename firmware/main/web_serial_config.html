@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MIDI Biodata Web Serial Config</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2em; }
+    label { display: block; margin-top: 1em; }
+    select, input[type="number"], input[type="text"] { width: 200px; }
+    #log { width: 100%; height: 200px; margin-top: 1em; font-family: monospace; background: #f0f0f0; overflow-y: scroll; }
+    button { margin-top: 1em; }
+  </style>
+</head>
+<body>
+  <h2>MIDI Biodata Configurator</h2>
+  <button id="connectBtn">Connect Serial</button>
+  <form id="configForm">
+    <label>
+      Threshold:
+      <input type="number" step="0.01" id="threshold" required>
+    </label>
+    <label>
+      Scale:
+      <select id="scale" required></select>
+    </label>
+    <label>
+      MIDI Channel:
+      <input type="number" id="channel" min="1" max="16" required>
+    </label>
+    <label>
+      Max Brightness:
+      <input type="number" id="maxbrightness" min="0" max="255" required>
+    </label>
+    <label>
+      Root Note:
+      <select id="rootnote"></select>
+    </label>
+    <button type="button" id="readBtn">Read All</button>
+    <button type="submit">Save All</button>
+  </form>
+  <h3>Serial Log</h3>
+  <textarea id="log" readonly></textarea>
+  <script>
+    // Scale names for dropdown
+    const scaleNames = [
+      "Chromatic",
+      "Ionian (Major)",
+      "Dorian",
+      "Phrygian",
+      "Lydian",
+      "Mixolydian",
+      "Aeolian (Minor)",
+      "Locrian",
+      "Indian 1",
+      "Indian 2"
+    ];
+    const scaleSelect = document.getElementById('scale');
+    for (let i = 0; i < scaleNames.length; ++i) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = `${i} - ${scaleNames[i]}`;
+      scaleSelect.appendChild(opt);
+    }
+
+    // MIDI note names for dropdown
+    const noteNames = [
+      "C", "C♯/D♭", "D", "D♯/E♭", "E", "F", "F♯/G♭", "G", "G♯/A♭", "A", "A♯/B♭", "B"
+    ];
+    const rootSelect = document.getElementById('rootnote');
+    for (let i = 0; i < 128; ++i) {
+      const octave = Math.floor(i / 12) - 1;
+      const name = noteNames[i % 12] + octave;
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = `${i} - ${name}`;
+      rootSelect.appendChild(opt);
+    }
+
+    let port, reader, writer;
+    const logArea = document.getElementById('log');
+    function log(msg, dir = "") {
+      logArea.value += (dir ? `[${dir}] ` : "") + msg + "\n";
+      logArea.scrollTop = logArea.scrollHeight;
+    }
+
+    async function connectSerial() {
+      try {
+        port = await navigator.serial.requestPort();
+        await port.open({ baudRate: 31250 });
+        writer = port.writable.getWriter();
+        reader = port.readable.getReader();
+        log("Serial connected", "INFO");
+        readSerialLoop();
+      } catch (e) {
+        log("Serial connection failed: " + e, "ERROR");
+      }
+    }
+
+    async function readSerialLoop() {
+      const decoder = new TextDecoder();
+      let buffer = "";
+      while (port && reader) {
+        try {
+          const { value, done } = await reader.read();
+          if (done) break;
+          if (value) {
+            buffer += decoder.decode(value);
+            let lines = buffer.split('\n');
+            buffer = lines.pop();
+            for (const line of lines) {
+              log(line.trim(), "RX");
+              try {
+                const obj = JSON.parse(line);
+                updateForm(obj);
+              } catch {}
+            }
+          }
+        } catch (e) {
+          log("Read error: " + e, "ERROR");
+          break;
+        }
+      }
+    }
+
+    function updateForm(obj) {
+      if (typeof obj !== "object") return;
+      if ("threshold" in obj) document.getElementById('threshold').value = obj.threshold;
+      if ("scale" in obj) document.getElementById('scale').value = obj.scale;
+      if ("channel" in obj) document.getElementById('channel').value = obj.channel;
+      if ("maxbrightness" in obj) document.getElementById('maxbrightness').value = obj.maxbrightness;
+      if ("rootnote" in obj) document.getElementById('rootnote').value = obj.rootnote;
+    }
+
+    async function sendJson(obj) {
+      if (!writer) {
+        log("Serial not connected", "ERROR");
+        return;
+      }
+      const json = JSON.stringify(obj) + "\n";
+      await writer.write(new TextEncoder().encode(json));
+      log(json.trim(), "TX");
+    }
+
+    document.getElementById('connectBtn').onclick = connectSerial;
+
+    document.getElementById('readBtn').onclick = async () => {
+      await sendJson({ command: "readall" });
+    };
+
+    document.getElementById('configForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const threshold = parseFloat(document.getElementById('threshold').value);
+      const scale = parseInt(document.getElementById('scale').value, 10);
+      const channel = parseInt(document.getElementById('channel').value, 10);
+      const maxbrightness = parseInt(document.getElementById('maxbrightness').value, 10);
+      const rootnote = parseInt(document.getElementById('rootnote').value, 10);
+      await sendJson({
+        command: "saveall",
+        threshold, scale, channel, maxbrightness, rootnote
+      });
+    };
+  </script>
+</body>
+</html>
