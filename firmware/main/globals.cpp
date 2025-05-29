@@ -15,7 +15,6 @@ int scale[scaleCount][scaleLen] = {
   {7, 0, 2, 3, 5, 7, 8, 10},                  // Aeolian (Minor)
   {7, 0, 1, 3, 5, 6, 8, 10},                  // Locrian
   {7, 0, 1, 4, 5, 7, 8, 11},                  // Raga Bhairav (double harmonic major)
-  {7, 0, 1, 4, 5, 7, 8, 11}                   // Example: Indian (Raga Bilawal, or user can specify)
 };
 
 // Global variables

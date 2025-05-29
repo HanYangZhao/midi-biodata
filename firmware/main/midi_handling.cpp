@@ -179,6 +179,6 @@ void triggerChord() {
 
   // Send chord notes via MIDI
   for (int i = 0; i < 3; i++) {
-    setNote(triad[i], 90, chordDuration, channel);
+    setNote(triad[i], 40, chordDuration, channel);
   }
 }

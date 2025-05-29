@@ -56,10 +56,11 @@ void analyzeSample() {
       int ramp = 3 + (dur % 100);
       int notechannel = random(1, 5);
 
-      static int previousNote = -1;
-      int setnote = map(averg % 127, 1, 127, noteMin, noteMax);
-      setnote = scaleNote_fast(setnote, root, currScale, previousNote);
-      previousNote = setnote;
+      static uint8_t previousNotes[2] = {0xFF, 0xFF};
+      uint8_t setnote = map(averg % 127, 1, 127, noteMin, noteMax);
+      setnote = scaleNote_fast(setnote, root, currScale, previousNotes);
+      previousNotes[1] = previousNotes[0];
+      previousNotes[0] = setnote;
 
       if (QY8) {
         setNote(setnote, 100, dur, notechannel);
