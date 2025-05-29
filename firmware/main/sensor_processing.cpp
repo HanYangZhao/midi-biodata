@@ -47,7 +47,7 @@ void analyzeSample() {
 
     delta = maxim - minim;
 
-    if (delta > (stdevi * threshold)) {
+    if (delta > (stdevi * throld)) {
       change = 1;
     }
 
@@ -56,8 +56,10 @@ void analyzeSample() {
       int ramp = 3 + (dur % 100);
       int notechannel = random(1, 5);
 
+      static int previousNote = -1;
       int setnote = map(averg % 127, 1, 127, noteMin, noteMax);
-      setnote = scaleNote_fast(setnote, root, currScale);
+      setnote = scaleNote_fast(setnote, root, currScale, previousNote);
+      previousNote = setnote;
 
       if (QY8) {
         setNote(setnote, 100, dur, notechannel);

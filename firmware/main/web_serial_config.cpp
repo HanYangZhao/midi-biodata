@@ -2,6 +2,17 @@
 #include <ArduinoJson.h>
 #include <EEPROM.h>
 #include "globals.h"
+#include <stdint.h>
+
+// Use unique static config variables to avoid conflicts
+static uint8_t configScale = 0;
+static uint8_t configMaxBrightness = 0;
+static uint8_t configChannel = 0;
+static float configThreshold = 0;
+static uint8_t configRootNote = 0;
+static uint8_t configBpm = 120;
+static uint8_t configbarperch = 1;
+static uint8_t configDroneEnabled = 0;
 
 void processWebSerialConfig() {
     while (Serial.available()) {
@@ -18,50 +29,59 @@ void processWebSerialConfig() {
             continue;
         }
 
-        String command = doc["command"] | "";
+        String command = doc["cmd"] | "";
         command.toLowerCase();
 
-        if (command == "readall") {
-            int scale = 0;
-            int maxbrightness = 0;
-            int channel = 0;
-            float threshold = 0;
-            int rootnote = 0;
+        if (command == "read") {
+            EEPROM.get(2, configScale);
+            EEPROM.get(4, configMaxBrightness);
+            EEPROM.get(6, configChannel);
+            EEPROM.get(8, configThreshold);
+            EEPROM.get(12, configRootNote);
+            EEPROM.get(14, configBpm);
+            EEPROM.get(16, configbarperch);
+            EEPROM.get(18, configDroneEnabled);
 
-            EEPROM.get(2, scale);
-            EEPROM.get(4, maxbrightness);
-            EEPROM.get(6, channel);
-            EEPROM.get(8, threshold);
-            EEPROM.get(12, root);
+            doc.clear();
+            doc["thr"] = configThreshold;
+            doc["scale"] = configScale;
+            doc["chn"] = configChannel;
+            doc["maxb"] = configMaxBrightness;
+            doc["rnote"] = configRootNote;
+            doc["bpm"] = configBpm;
+            doc["barperch"] = configbarperch;
+            doc["drone"] = configDroneEnabled;
 
-            StaticJsonDocument<64> outDoc;
-            outDoc["threshold"] = threshold;
-            outDoc["scale"] = scale;
-            outDoc["channel"] = channel;
-            outDoc["maxbrightness"] = maxbrightness;
-            outDoc["rootnote"] = root;
-
-            serializeJson(outDoc, Serial);
+            serializeJson(doc, Serial);
             Serial.println();
-        } else if (command == "saveall") {
-            float threshold = doc["threshold"] | 0.0;
-            int scale = doc["scale"] | 0;
-            int channelVal = doc["channel"] | 0;
-            int maxbrightness = doc["maxbrightness"] | 0;
-            int rootnote = doc["rootnote"] | 0;
+        } else if (command == "save") {
+            configThreshold = doc["thr"] | 0.0;
+            configScale = doc["scale"] | 0;
+            configChannel = doc["chn"] | 0;
+            configMaxBrightness = doc["maxb"] | 0;
+            configRootNote = doc["rnote"] | 0;
+            configBpm = doc["bpm"] | 120;
+            configbarperch = doc["barperch"] | 4;
+            configDroneEnabled = doc["drone"] | 0;
 
-            EEPROM.put(2, scale);
-            EEPROM.put(4, maxbrightness);
-            EEPROM.put(6, channelVal);
-            EEPROM.put(8, threshold);
-            EEPROM.put(12, rootnote);
+            EEPROM.put(2, configScale);
+            EEPROM.put(4, configMaxBrightness);
+            EEPROM.put(6, configChannel);
+            EEPROM.put(8, configThreshold);
+            EEPROM.put(12, configRootNote);
+            EEPROM.put(14, configBpm);
+            EEPROM.put(16, configbarperch);
+            EEPROM.put(18, configDroneEnabled);
 
             // Update globals
-            currScale = scale;
-            maxBrightness = maxbrightness;
-            channel = channelVal;
-            threshold = threshold;
-            root = rootnote;
+            currScale = configScale;
+            maxBrightness = configMaxBrightness;
+            channel = configChannel;
+            throld = configThreshold;
+            root = configRootNote;
+            bpm = configBpm;
+            barperch = configbarperch;
+            droneEnabled = configDroneEnabled;
 
             Serial.println("{\"status\":\"saved\"}");
         } else {

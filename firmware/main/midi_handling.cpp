@@ -1,5 +1,9 @@
 #include "midi_handling.h"
 #include "led_control.h"
+#include "globals.h"
+
+// Forward declaration
+void triggerChord();
 
 void debugPrintNote(int value, int velocity, int notechannel) {
 #if defined(ARDUINO_AVR_MEGA2560)
@@ -117,4 +121,64 @@ void midiSerial(int type, int channel, int data1, int data2) {
   }
 #endif
   sei();
+}
+
+// --- Chord timing and triad logic ---
+static unsigned long lastChordMillis = 0;
+static int barsElapsed = 0;
+
+void midiChordTick() {
+  static int prevDroneEnabled = 1;
+  int triad[3] = {
+    root + scale[currScale][1],
+    root + scale[currScale][3],
+    root + scale[currScale][5]
+  };
+
+  if (!droneEnabled) {
+    if (prevDroneEnabled) {
+      // Drone was just disabled, turn off notes
+      for (int i = 0; i < 3; i++) {
+        MIDI.sendNoteOff(triad[i], 0, channel);
+      }
+    }
+    prevDroneEnabled = droneEnabled;
+    return;
+  }
+
+  // Calculate ms per bar: (60,000 ms/min) / bpm * 4 beats/bar
+  unsigned long msPerBar = (unsigned long)(60000.0 / bpm * 4);
+  if (currentMillis - lastChordMillis >= msPerBar) {
+    lastChordMillis += msPerBar;
+    barsElapsed++;
+    if (barsElapsed >= barperch) {
+      barsElapsed = 0;
+      triggerChord();
+    }
+  }
+  prevDroneEnabled = droneEnabled;
+}
+
+void triggerChord() {
+  // Triad drone: root, 3rd, 5th of the current scale
+  // The root note is played one octave below
+  int triad[3] = {
+    (root + scale[currScale][1]) - 12, // root one octave down
+    root + scale[currScale][3],
+    root + scale[currScale][5]
+  };
+
+  // Duration for drone = X bars
+  unsigned long msPerBar = (unsigned long)(60000.0 / bpm * 4);
+  long chordDuration = msPerBar * barperch;
+
+  // Send NoteOff for all triad notes (to avoid overlap)
+  for (int i = 0; i < 3; i++) {
+    MIDI.sendNoteOff(triad[i], 0, channel);
+  }
+
+  // Send chord notes via MIDI
+  for (int i = 0; i < 3; i++) {
+    setNote(triad[i], 90, chordDuration, channel);
+  }
 }

@@ -10,4 +10,6 @@ void checkNote();
 void MIDIpanic();
 void midiSerial(int type, int channel, int data1, int data2);
 
+void midiChordTick();
+
 #endif // MIDI_HANDLING_H

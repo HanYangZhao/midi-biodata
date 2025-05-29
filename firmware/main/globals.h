@@ -23,40 +23,31 @@ extern int scale[scaleCount][scaleLen];
 extern uint16_t currScale;
 extern uint16_t maxBrightness;
 extern uint16_t channel;
-extern float threshold;
-extern float threshMin;
-extern float threshMax;
-extern int root;
+extern float throld;
+extern float thrMin;
+extern float thrMax;
+extern uint8_t root;
 
 extern const byte interruptPin;
 extern const byte knobPin;
-extern int menus;
-extern int mode;
-extern int currMenu;
-extern int pulseRate;
+extern uint16_t pulseRate;
 
 extern const byte samplesize;
 extern const byte analysize;
 
 extern const byte polyphony;
 
-extern int noteMin;
-extern int noteMax;
+extern uint8_t noteMin;
+extern uint8_t noteMax;
 extern byte QY8;
 extern byte controlNumber;
 extern byte controlVoltage;
-extern byte checkBat;
 
-extern byte timeout;
 extern int value;
-extern int prevValue;
 
 extern volatile unsigned long microseconds;
 extern volatile byte index;
 extern volatile unsigned long samples[];
-
-extern float knobMin;
-extern float knobMax;
 
 extern unsigned long buttonPressed;
 
@@ -82,5 +73,12 @@ typedef struct _MIDImessage {
 extern MIDImessage noteArray[];
 extern int noteIndex;
 extern MIDImessage controlMessage;
+
+// Chord timing globals
+extern int bpm;
+extern int barperch;
+
+// Drone enable global
+extern int droneEnabled;
 
 #endif // GLOBALS_H

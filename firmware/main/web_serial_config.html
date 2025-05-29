@@ -35,6 +35,18 @@
       Root Note:
       <select id="rootnote"></select>
     </label>
+    <label>
+      BPM:
+      <input type="number" id="bpm" min="20" max="300" value="120" required>
+    </label>
+    <label>
+      Bars per Chord:
+      <input type="number" id="barsperchord" min="1" max="16" value="4" required>
+    </label>
+    <label>
+      Drone Enabled:
+      <input type="checkbox" id="droneEnabled">
+    </label>
     <button type="button" id="readBtn">Read All</button>
     <button type="submit">Save All</button>
   </form>
@@ -110,8 +122,14 @@
             for (const line of lines) {
               log(line.trim(), "RX");
               try {
-                const obj = JSON.parse(line);
-                updateForm(obj);
+                // Extract first JSON object from the line
+                const jsonStart = line.indexOf('{');
+                const jsonEnd = line.lastIndexOf('}');
+                if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+                  const jsonStr = line.substring(jsonStart, jsonEnd + 1);
+                  const obj = JSON.parse(jsonStr);
+                  updateForm(obj);
+                }
               } catch {}
             }
           }
@@ -124,11 +142,14 @@
 
     function updateForm(obj) {
       if (typeof obj !== "object") return;
-      if ("threshold" in obj) document.getElementById('threshold').value = obj.threshold;
-      if ("scale" in obj) document.getElementById('scale').value = obj.scale;
-      if ("channel" in obj) document.getElementById('channel').value = obj.channel;
-      if ("maxbrightness" in obj) document.getElementById('maxbrightness').value = obj.maxbrightness;
-      if ("rootnote" in obj) document.getElementById('rootnote').value = obj.rootnote;
+      if (obj.thr !== undefined) document.getElementById('threshold').value = obj.thr;
+      if (obj.scale !== undefined) document.getElementById('scale').value = obj.scale;
+      if (obj.chn !== undefined) document.getElementById('channel').value = obj.chn;
+      if (obj.maxb !== undefined) document.getElementById('maxbrightness').value = obj.maxb;
+      if (obj.rnote !== undefined) document.getElementById('rootnote').value = obj.rnote;
+      if (obj.bpm !== undefined) document.getElementById('bpm').value = obj.bpm;
+      if (obj.barperch !== undefined) document.getElementById('barsperchord').value = obj.barperch;
+      if (obj.drone !== undefined) document.getElementById('droneEnabled').checked = !!obj.drone;
     }
 
     async function sendJson(obj) {
@@ -144,19 +165,28 @@
     document.getElementById('connectBtn').onclick = connectSerial;
 
     document.getElementById('readBtn').onclick = async () => {
-      await sendJson({ command: "readall" });
+      await sendJson({ cmd: "read" });
     };
 
     document.getElementById('configForm').onsubmit = async (e) => {
       e.preventDefault();
-      const threshold = parseFloat(document.getElementById('threshold').value);
+      const thr = parseFloat(document.getElementById('threshold').value);
       const scale = parseInt(document.getElementById('scale').value, 10);
-      const channel = parseInt(document.getElementById('channel').value, 10);
-      const maxbrightness = parseInt(document.getElementById('maxbrightness').value, 10);
-      const rootnote = parseInt(document.getElementById('rootnote').value, 10);
+      const chn = parseInt(document.getElementById('channel').value, 10);
+      const maxb = parseInt(document.getElementById('maxbrightness').value, 10);
+      const rnote = parseInt(document.getElementById('rootnote').value, 10);
+      const bpm = parseInt(document.getElementById('bpm').value, 10);
+      const barperch = parseInt(document.getElementById('barsperchord').value, 10);
       await sendJson({
-        command: "saveall",
-        threshold, scale, channel, maxbrightness, rootnote
+        cmd: "save",
+        thr,
+        scale,
+        chn,
+        maxb,
+        rnote,
+        bpm,
+        barperch,
+        drone: document.getElementById('droneEnabled').checked ? 1 : 0
       });
     };
   </script>

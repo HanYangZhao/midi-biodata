@@ -54,6 +54,8 @@ void loop() {
   checkControl();
   checkLED();
 
+  midiChordTick();
+
   // --- Only process JSON commands via web_serial_config ---
   processWebSerialConfig();
 

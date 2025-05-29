@@ -22,40 +22,32 @@ int scale[scaleCount][scaleLen] = {
 uint16_t currScale = 0;
 uint16_t maxBrightness = 190;
 uint16_t channel = 1;
-float threshold = 2.3;
-float threshMin = 1.61;
-float threshMax = 3.71;
-int root = 0;
+float throld = 2.3;
+float thrMin = 1.61;
+float thrMax = 3.71;
+uint8_t root = 0;
 
 const byte interruptPin = INT0;
 const byte knobPin = A0;
-int menus = 4;
-int mode = 0;
-int currMenu = 0;
-int pulseRate = 350;
+uint16_t pulseRate = 350;
 
 const byte samplesize = 10;
 const byte analysize = samplesize - 1;
 
 const byte polyphony = 5;
 
-int noteMin = 36;
-int noteMax = 96;
+uint8_t noteMin = 36;
+uint8_t noteMax = 96;
 byte QY8 = 0;
 byte controlNumber = 80;
 byte controlVoltage = 1;
-byte checkBat = 1;
 
-byte timeout = 0;
 int value = 0;
-int prevValue = 0;
 
 volatile unsigned long microseconds = 0;
 volatile byte index = 0;
 volatile unsigned long samples[samplesize] = {0};
 
-float knobMin = 1;
-float knobMax = 1024;
 
 unsigned long previousMillis = 0;
 unsigned long previousButtonMillis = 0;
@@ -80,3 +72,8 @@ byte noteLEDs = 1;
 MIDImessage noteArray[polyphony] = {};
 int noteIndex = 0;
 MIDImessage controlMessage = {};
+
+// Chord timing globals
+int bpm = 120;
+int barperch = 1;
+int droneEnabled = 0;

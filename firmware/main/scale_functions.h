@@ -1,6 +1,6 @@
 #ifndef SCALE_FUNCTIONS_H
 #define SCALE_FUNCTIONS_H
 
-int scaleNote_fast(int note, int root, int scaleType);
+int scaleNote_fast(int note, int root, int scaleType, int previousNote);
 
 #endif // SCALE_FUNCTIONS_H
