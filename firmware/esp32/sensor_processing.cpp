@@ -5,17 +5,17 @@
 #include "scale_functions.h"
 #include <math.h>
 
-long readVcc() {
-  long result;
-  ADMUX = _BV(REFS0) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
-  delay(2);
-  ADCSRA |= _BV(ADSC);
-  while (bit_is_set(ADCSRA, ADSC));
-  result = ADCL;
-  result |= ADCH << 8;
-  result = 1126400L / result;
-  return result;
-}
+// long readVcc() {
+//   long result;
+//   ADMUX = _BV(REFS0) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
+//   delay(2);
+//   ADCSRA |= _BV(ADSC);
+//   while (bit_is_set(ADCSRA, ADSC));
+//   result = ADCL;
+//   result |= ADCH << 8;
+//   result = 1126400L / result;
+//   return result;
+// }
 
 void analyzeSample() {
   unsigned long averg = 0;
@@ -25,7 +25,7 @@ void analyzeSample() {
   unsigned long delta = 0;
   byte change = 0;
 
-  if (index == samplesize) {
+  if (sampleIndex == samplesize) {
     unsigned long sampanalysis[analysize];
     for (byte i = 0; i < analysize; i++) {
       sampanalysis[i] = samples[i + 1];
@@ -56,6 +56,11 @@ void analyzeSample() {
       int ramp = 3 + (dur % 100);
       int notechannel = random(1, 5);
 
+      // Velocity based on delta, mapped to velocityMin/velocityMax
+      uint8_t velocity = map(delta, 0, 1023, velocityMin, velocityMax);
+      if (velocity < velocityMin) velocity = velocityMin;
+      if (velocity > velocityMax) velocity = velocityMax;
+
       static uint8_t previousNotes[2] = {0xFF, 0xFF};
       uint8_t setnote = map(averg % 127, 1, 127, noteMin, noteMax);
       setnote = scaleNote_fast(setnote, root, currScale, previousNotes);
@@ -63,14 +68,14 @@ void analyzeSample() {
       previousNotes[0] = setnote;
 
       if (QY8) {
-        setNote(setnote, 100, dur, notechannel);
+        setNote(setnote, velocity, dur, notechannel,true);
       } else {
-        setNote(setnote, 100, dur, channel);
+        setNote(setnote, velocity, dur, channel,true);
       }
 
       setControl(controlNumber, controlMessage.value, delta % 127, ramp);
     }
 
-    index = 0;
+    sampleIndex = 0;
   }
 }

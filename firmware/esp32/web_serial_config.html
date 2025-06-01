@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MIDI Biodata Web Serial Config</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2em; }
+    label { display: block; margin-top: 1em; }
+    select, input[type="number"], input[type="text"] { width: 200px; }
+    #log { width: 100%; height: 200px; margin-top: 1em; font-family: monospace; background: #f0f0f0; overflow-y: scroll; }
+    button { margin-top: 1em; }
+  </style>
+</head>
+<body>
+  <h2>MIDI Biodata Configurator</h2>
+  <button id="connectBtn">Connect Serial</button>
+  <form id="configForm">
+    <label>
+      Threshold:
+      <input type="number" step="0.01" id="threshold" min="1.61" max="3.71" required>
+    </label>
+    <label>
+      Scale:
+      <select id="scale" required></select>
+    </label>
+    <label>
+      MIDI Channel:
+      <input type="number" id="channel" min="1" max="16" required>
+    </label>
+    <label>
+      Max Brightness:
+      <input type="number" id="maxbrightness" min="0" max="255" required>
+    </label>
+    <label>
+      Root Note:
+      <select id="rootnote"></select>
+    </label>
+    <label>
+      BPM:
+      <input type="number" id="bpm" min="20" max="300" value="120" required>
+    </label>
+    <label>
+      Bars per Chord:
+      <input type="number" id="barsperchord" min="1" max="16" value="4" required>
+    </label>
+    <label>
+      Drone Enabled:
+      <input type="checkbox" id="droneEnabled">
+    </label>
+    <label>
+      Note Min (A0=21):
+      <input type="number" id="noteMin" min="0" max="127" required>
+    </label>
+    <label>
+      Note Max (C8=108):
+      <input type="number" id="noteMax" min="0" max="127" required>
+    </label>
+    <label>
+      Velocity Min:
+      <input type="number" id="velocityMin" min="1" max="127" required>
+    </label>
+    <label>
+      Velocity Max:
+      <input type="number" id="velocityMax" min="1" max="127" required>
+    </label>
+    <button type="button" id="readBtn">Read All</button>
+    <button type="submit">Save All</button>
+  </form>
+  <h3>Serial Log</h3>
+  <textarea id="log" readonly></textarea>
+  <script>
+    // Scale names for dropdown
+    const scaleNames = [
+      "Chromatic",
+      "Ionian (Major)",
+      "Dorian",
+      "Phrygian",
+      "Lydian",
+      "Mixolydian",
+      "Aeolian (Minor)",
+      "Locrian",
+      "Raga Bhairav"
+    ];
+    const scaleSelect = document.getElementById('scale');
+    for (let i = 0; i < scaleNames.length; ++i) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = `${i} - ${scaleNames[i]}`;
+      scaleSelect.appendChild(opt);
+    }
+
+    // MIDI note names for dropdown
+    const noteNames = [
+      "C", "C♯/D♭", "D", "D♯/E♭", "E", "F", "F♯/G♭", "G", "G♯/A♭", "A", "A♯/B♭", "B"
+    ];
+    const rootSelect = document.getElementById('rootnote');
+    for (let i = 0; i < 128; ++i) {
+      const octave = Math.floor(i / 12) - 1;
+      const name = noteNames[i % 12] + octave;
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = `${i} - ${name}`;
+      rootSelect.appendChild(opt);
+    }
+
+    let port, reader, writer;
+    const logArea = document.getElementById('log');
+    function log(msg, dir = "") {
+      logArea.value += (dir ? `[${dir}] ` : "") + msg + "\n";
+      logArea.scrollTop = logArea.scrollHeight;
+    }
+
+    async function connectSerial() {
+      try {
+        port = await navigator.serial.requestPort();
+        await port.open({ baudRate: 31250 });
+        writer = port.writable.getWriter();
+        reader = port.readable.getReader();
+        log("Serial connected", "INFO");
+        readSerialLoop();
+      } catch (e) {
+        log("Serial connection failed: " + e, "ERROR");
+      }
+    }
+
+    async function readSerialLoop() {
+      const decoder = new TextDecoder();
+      let buffer = "";
+      while (port && reader) {
+        try {
+          const { value, done } = await reader.read();
+          if (done) break;
+          if (value) {
+            buffer += decoder.decode(value);
+            let lines = buffer.split('\n');
+            buffer = lines.pop();
+            for (const line of lines) {
+              log(line.trim(), "RX");
+              try {
+                // Extract first JSON object from the line
+                const jsonStart = line.indexOf('{');
+                const jsonEnd = line.lastIndexOf('}');
+                if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+                  const jsonStr = line.substring(jsonStart, jsonEnd + 1);
+                  const obj = JSON.parse(jsonStr);
+                  updateForm(obj);
+                }
+              } catch {}
+            }
+          }
+        } catch (e) {
+          log("Read error: " + e, "ERROR");
+          break;
+        }
+      }
+    }
+
+    function updateForm(obj) {
+      if (typeof obj !== "object") return;
+      if (obj.thr !== undefined) document.getElementById('threshold').value = obj.thr;
+      if (obj.scale !== undefined) document.getElementById('scale').value = obj.scale;
+      if (obj.chn !== undefined) document.getElementById('channel').value = obj.chn;
+      if (obj.maxb !== undefined) document.getElementById('maxbrightness').value = obj.maxb;
+      if (obj.rnote !== undefined) document.getElementById('rootnote').value = obj.rnote;
+      if (obj.bpm !== undefined) document.getElementById('bpm').value = obj.bpm;
+      if (obj.barperch !== undefined) document.getElementById('barsperchord').value = obj.barperch;
+      if (obj.drone !== undefined) document.getElementById('droneEnabled').checked = !!obj.drone;
+      if (obj.noteMin !== undefined) document.getElementById('noteMin').value = obj.noteMin;
+      if (obj.noteMax !== undefined) document.getElementById('noteMax').value = obj.noteMax;
+      if (obj.velocityMin !== undefined) document.getElementById('velocityMin').value = obj.velocityMin;
+      if (obj.velocityMax !== undefined) document.getElementById('velocityMax').value = obj.velocityMax;
+    }
+
+    async function sendJson(obj) {
+      if (!writer) {
+        log("Serial not connected", "ERROR");
+        return;
+      }
+      const json = JSON.stringify(obj) + "\n";
+      await writer.write(new TextEncoder().encode(json));
+      log(json.trim(), "TX");
+    }
+
+    document.getElementById('connectBtn').onclick = connectSerial;
+
+    document.getElementById('readBtn').onclick = async () => {
+      await sendJson({ cmd: "read" });
+    };
+
+    document.getElementById('configForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const thr = parseFloat(document.getElementById('threshold').value);
+      const scale = parseInt(document.getElementById('scale').value, 10);
+      const chn = parseInt(document.getElementById('channel').value, 10);
+      const maxb = parseInt(document.getElementById('maxbrightness').value, 10);
+      const rnote = parseInt(document.getElementById('rootnote').value, 10);
+      const bpm = parseInt(document.getElementById('bpm').value, 10);
+      const barperch = parseInt(document.getElementById('barsperchord').value, 10);
+      const noteMin = parseInt(document.getElementById('noteMin').value, 10);
+      const noteMax = parseInt(document.getElementById('noteMax').value, 10);
+      const velocityMin = parseInt(document.getElementById('velocityMin').value, 10);
+      const velocityMax = parseInt(document.getElementById('velocityMax').value, 10);
+      await sendJson({
+        cmd: "save",
+        thr,
+        scale,
+        chn,
+        maxb,
+        rnote,
+        bpm,
+        barperch,
+        drone: document.getElementById('droneEnabled').checked ? 1 : 0,
+        noteMin,
+        noteMax,
+        velocityMin,
+        velocityMax
+      });
+    };
+  </script>
+</body>
+</html>
