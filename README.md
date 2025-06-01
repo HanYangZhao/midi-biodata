@@ -14,6 +14,7 @@ Here you find the hardware and enclosure design files for the MIDI Biodata Sonif
     - Chord drone with selectable bpm and frequency. The chord is a triad based on the scale chosen.
     - Refactored code into multipe files for easier understanding.
     - Remove menu codes to save space, some optimization to free up the stack.
+  - esp32: Same as main but for ESP32, the arduino-LEDFader folder needs to be copied to .../Arduino/Libraries
 - kicad: hardware design as KiCAD project and Gerber files. The board is designed to be used add-on to any microcontroller. It doesn't contain the microcontroller.
 
 The hardware design and firmware is based on the work of electricityforprogress and thus licensed under the MIT license.
