@@ -32,6 +32,15 @@ void setup() {
 
   Serial.begin(31250);
   Serial1.begin(31250, SERIAL_8N1, MIDI_SERIAL1_RX_PIN, MIDI_SERIAL1_TX_PIN);
+
+  // USB MIDI initialization (from Adafruit_TinyUSB example)
+  if (!TinyUSBDevice.isInitialized()) {
+    TinyUSBDevice.begin(0);
+  }
+  usb_midi.setStringDescriptor("TinyUSB MIDI");
+  // This will also call usb_midi's begin()
+  usbMIDI.begin(MIDI_CHANNEL_OMNI);
+
   printGlobals();
   MIDI.begin();
   controlMessage.value = 0;

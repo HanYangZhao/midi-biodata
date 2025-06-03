@@ -1,7 +1,13 @@
-#include "midi_handling.h"
-#include "led_control.h"
-#include "globals.h"
 
+#include "midi_handling.h"
+
+// Define the USB MIDI object
+Adafruit_USBD_MIDI usb_midi;
+
+// Create the MIDI interface instance
+MIDI_CREATE_INSTANCE(Adafruit_USBD_MIDI, usb_midi, usbMIDI);
+// Instantiate the MIDI object on Serial1 for ESP32
+MIDI_CREATE_INSTANCE(HardwareSerial, Serial1, MIDI);
 // Forward declaration
 void triggerChord();
 
@@ -32,8 +38,10 @@ void setNote(int value, int velocity, long duration, int notechannel, bool debug
 
       if (QY8) {
         MIDI.sendNoteOn(value, velocity, notechannel);
+        usbMIDI.sendNoteOn(value, velocity, notechannel);
       } else {
         MIDI.sendNoteOn(value, velocity, channel);
+        usbMIDI.sendNoteOn(value, velocity, channel);
       }
 
       if (noteLEDs == 1) {
@@ -83,8 +91,10 @@ void checkNote() {
         debugPrintNote(noteArray[i].value, 0, noteArray[i].channel);
         if (QY8) {
           MIDI.sendNoteOff(noteArray[i].value, 0, noteArray[i].channel);
+          usbMIDI.sendNoteOff(noteArray[i].value, 0, noteArray[i].channel);
         } else {
           MIDI.sendNoteOff(noteArray[i].value, 0, channel);
+          usbMIDI.sendNoteOff(noteArray[i].value, 0, channel);
         }
         noteArray[i].velocity = 0;
         if (noteLEDs == 1) rampDown(i, 0, 225);
@@ -98,10 +108,12 @@ void MIDIpanic() {
   for (byte i = 1; i < 128; i++) {
     delay(1);
     MIDI.sendNoteOff(i, 0, channel);
+    usbMIDI.sendNoteOff(i, 0, channel);
     if (QY8) {
       for (byte k = 1; k < 5; k++) {
         delay(1);
         MIDI.sendNoteOff(i, 0, k);
+        usbMIDI.sendNoteOff(i, 0, k);
       }
     }
   }
@@ -139,6 +151,7 @@ void midiChordTick() {
       // Drone was just disabled, turn off notes
       for (int i = 0; i < 3; i++) {
         MIDI.sendNoteOff(triad[i], 0, channel);
+        usbMIDI.sendNoteOff(triad[i], 0, channel);
       }
     }
     prevDroneEnabled = droneEnabled;
@@ -174,6 +187,7 @@ void triggerChord() {
   // Send NoteOff for all triad notes (to avoid overlap)
   for (int i = 0; i < 3; i++) {
     MIDI.sendNoteOff(triad[i], 0, channel);
+    usbMIDI.sendNoteOff(triad[i], 0, channel);
   }
 
   // Send chord notes via MIDI

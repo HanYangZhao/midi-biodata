@@ -1,10 +1,6 @@
 #include "globals.h"
 #include <MIDI.h>
 
-// Instantiate the MIDI object on Serial1 for ESP32
-MIDI_CREATE_INSTANCE(HardwareSerial, Serial1, MIDI);
-#include <MIDI.h>
-
 
 // Scale arrays
 int scale[scaleCount][scaleLen] = {

@@ -3,7 +3,6 @@
 
 #include <Arduino.h>
 #include <LEDFader.h>
-#include <MIDI.h>
 #include <EEPROM.h>
 
 // =====================
@@ -23,7 +22,6 @@
 // Constants
 #define SCHEMA 0x02
 
-extern MIDI_NAMESPACE::MidiInterface<MIDI_NAMESPACE::SerialMIDI<HardwareSerial>> MIDI;
 
 // Scale constants
 const int scaleCount = 9;
