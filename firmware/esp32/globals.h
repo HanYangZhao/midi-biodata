@@ -56,7 +56,7 @@ extern byte QY8;
 extern byte controlNumber;
 extern byte controlVoltage;
 
-extern bool ccMessagingEnabled;
+extern uint8_t ccEnable;
 
 extern int value;
 

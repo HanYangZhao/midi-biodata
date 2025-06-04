@@ -40,7 +40,7 @@ uint8_t velocityMax = 127;
 byte QY8 = 0;
 byte controlNumber = 80;
 byte controlVoltage = 1;
-bool ccMessagingEnabled = false;
+uint8_t ccEnable = 0;
 
 int value = 0;
 
@@ -91,5 +91,6 @@ void printGlobals() {
   Serial.print("noteMax: "); Serial.println(noteMax);
   Serial.print("velocityMin: "); Serial.println(velocityMin);
   Serial.print("velocityMax: "); Serial.println(velocityMax);
+  Serial.print("ccEnable: "); Serial.println(ccEnable);
   Serial.println("-----------------------------");
 }

@@ -76,7 +76,7 @@ void analyzeSample() {
         noteSent = true;
       }
 
-      if (noteSent && ccMessagingEnabled) {
+      if (noteSent && ccEnable) {
         int ccValue = map(delta, 0, 1023, 0, 127);
         setControl(controlNumber, ccValue, ccValue, dur);
       }

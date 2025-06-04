@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#include <Preferences.h>
 #include "globals.h"
 #include <stdint.h>
 
@@ -13,7 +12,7 @@ void processWebSerialConfig() {
         line.trim();
         if (line.length() == 0) continue;
 
-        StaticJsonDocument<128> doc;
+        StaticJsonDocument<256> doc;
         DeserializationError error = deserializeJson(doc, line);
         if (error) {
             Serial.print("{\"status\":\"deserializeJson() failed\",\"error\":\"");
@@ -26,53 +25,44 @@ void processWebSerialConfig() {
         command.toLowerCase();
 
         if (command == "read") {
-            Preferences localPrefs;
-            localPrefs.begin("midi-bio", true);
+            // Always refresh globals from storage
+            readSettings();
 
             doc.clear();
-            doc["thr"] = localPrefs.getFloat("throld", 2.3f);
-            doc["scale"] = localPrefs.getUShort("currScale", 1);
-            doc["chn"] = localPrefs.getUShort("channel", 1);
-            doc["maxb"] = localPrefs.getUShort("maxBrightness", 255);
-            doc["rnote"] = localPrefs.getUShort("root", 60);
-            doc["bpm"] = localPrefs.getUShort("bpm", 120);
-            doc["barperch"] = localPrefs.getUShort("barperch", 1);
-            doc["drone"] = localPrefs.getUShort("droneEnabled", 0);
-            doc["noteMin"] = localPrefs.getUChar("noteMin", 21);
-            doc["noteMax"] = localPrefs.getUChar("noteMax", 108);
-            doc["velocityMin"] = localPrefs.getUChar("velocityMin", 30);
-            doc["velocityMax"] = localPrefs.getUChar("velocityMax", 127);
-            doc["ccMessagingEnabled"] = localPrefs.getUChar("ccMessagingEnabled", ccMessagingEnabled ? 1 : 0);
-
-            localPrefs.end();
+            doc["thr"] = throld;
+            doc["scale"] = currScale;
+            doc["chn"] = channel;
+            doc["maxb"] = maxBrightness;
+            doc["rnote"] = root;
+            doc["bpm"] = bpm;
+            doc["barperch"] = barperch;
+            doc["drone"] = droneEnabled;
+            doc["noteMin"] = noteMin;
+            doc["noteMax"] = noteMax;
+            doc["velocityMin"] = velocityMin;
+            doc["velocityMax"] = velocityMax;
+            doc["ccEnable"] = ccEnable;
 
             serializeJson(doc, Serial);
             Serial.println();
         } else if (command == "save") {
-            Preferences localPrefs;
-            localPrefs.begin("midi-bio", false);
+            // Update all global variables from JSON
+            throld = doc["thr"] | throld;
+            currScale = doc["scale"] | currScale;
+            channel = doc["chn"] | channel;
+            maxBrightness = doc["maxb"] | maxBrightness;
+            root = doc["rnote"] | root;
+            bpm = doc["bpm"] | bpm;
+            barperch = doc["barperch"] | barperch;
+            droneEnabled = doc["drone"] | droneEnabled;
+            noteMin = doc["noteMin"] | noteMin;
+            noteMax = doc["noteMax"] | noteMax;
+            velocityMin = doc["velocityMin"] | velocityMin;
+            velocityMax = doc["velocityMax"] | velocityMax;
+            ccEnable = doc["ccEnable"];
 
-            localPrefs.putFloat("throld", doc["thr"] | 2.3f);
-            localPrefs.putUShort("currScale", doc["scale"] | 1);
-            localPrefs.putUShort("channel", doc["chn"] | 1);
-            localPrefs.putUShort("maxBrightness", doc["maxb"] | 255);
-            localPrefs.putUShort("root", doc["rnote"] | 60);
-            localPrefs.putUShort("bpm", doc["bpm"] | 120);
-            localPrefs.putUShort("barperch", doc["barperch"] | 1);
-            localPrefs.putUShort("droneEnabled", doc["drone"] | 0);
-            localPrefs.putUChar("noteMin", doc["noteMin"] | 21);
-            localPrefs.putUChar("noteMax", doc["noteMax"] | 108);
-            localPrefs.putUChar("velocityMin", doc["velocityMin"] | 30);
-            localPrefs.putUChar("velocityMax", doc["velocityMax"] | 127);
-            localPrefs.putUChar("ccMessagingEnabled", doc["ccMessagingEnabled"] | (ccMessagingEnabled ? 1 : 0));
-
-            localPrefs.end();
-
-            // Update globals
-            readSettings();
-
-            // Update runtime flag
-            ccMessagingEnabled = (doc["ccMessagingEnabled"] | (ccMessagingEnabled ? 1 : 0)) ? true : false;
+            // Save all settings using firmware's saveSettings (ensures ccEnable is persisted)
+            saveSettings();
 
             Serial.println("{\"status\":\"saved\"}");
         } else if (command == "blemidi") {

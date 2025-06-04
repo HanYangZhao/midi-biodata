@@ -24,15 +24,18 @@ void setup() {
   pinMode(LED_PIN_3, OUTPUT);
   pinMode(LED_PIN_4, OUTPUT);
 
-  // Factory reset: uncomment the next line, upload, then comment again and re-upload
-  // initializeEEPROM();
 
-  readSettings();
+
+
   randomSeed(analogRead(0));
 
   Serial.begin(31250);
   Serial1.begin(31250, SERIAL_8N1, MIDI_SERIAL1_RX_PIN, MIDI_SERIAL1_TX_PIN);
 
+  // Factory reset: uncomment the next line, upload, then comment again and re-upload
+  // initializeEEPROM();
+
+  readSettings();
   // USB MIDI initialization (from Adafruit_TinyUSB example)
   if (!TinyUSBDevice.isInitialized()) {
     TinyUSBDevice.begin(0);

@@ -20,7 +20,9 @@ void readSettings() {
   noteMax = prefs.getUChar("noteMax", 108);
   velocityMin = prefs.getUChar("velocityMin", 30);
   velocityMax = prefs.getUChar("velocityMax", 127);
-  ccMessagingEnabled = prefs.getUChar("ccMessagingEnabled", 0);
+
+  // Read ccEnable as int
+  ccEnable = prefs.getUChar("ccEnable", 0);
 
   prefs.end();
 
@@ -28,6 +30,7 @@ void readSettings() {
 }
 
 void saveSettings() {
+  printGlobals();
   prefs.begin("midi-bio", false); // read-write
 
   prefs.putUShort("currScale", currScale);
@@ -42,12 +45,15 @@ void saveSettings() {
   prefs.putUChar("noteMax", noteMax);
   prefs.putUChar("velocityMin", velocityMin);
   prefs.putUChar("velocityMax", velocityMax);
-  prefs.putUChar("ccMessagingEnabled", ccMessagingEnabled ? 1 : 0);
-
+  prefs.putUChar("ccEnable", ccEnable);
   prefs.end();
 }
 
 void initializeEEPROM() {
+  // Factory reset: clear all stored values
+  prefs.begin("midi-bio", false);
+  prefs.clear();
+  prefs.end();
   // Set all values to defaults and save
   currScale = 1;
   maxBrightness = 255;
@@ -61,5 +67,6 @@ void initializeEEPROM() {
   noteMax = 108;
   velocityMin = 30;
   velocityMax = 127;
+  ccEnable = 1;
   saveSettings();
 }

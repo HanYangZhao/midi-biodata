@@ -99,7 +99,13 @@ void setControl(int type, int value, int velocity, long duration) {
   controlMessage.period = duration;
   controlMessage.duration = currentMillis + duration;
   // Direct CC logic: send CC immediately, schedule off
-  if (ccMessagingEnabled) {
+  if (ccEnable == 1) {
+    Serial.print("[MIDI CC] type=");
+    Serial.print(controlMessage.type);
+    Serial.print(" value=");
+    Serial.print(value);
+    Serial.print(" channel=");
+    Serial.println(channel);
     MIDI.sendControlChange(type, velocity, channel);
     usbMIDI.sendControlChange(type, velocity, channel);
     controlMessage.value = velocity; // Track last sent value
@@ -120,7 +126,7 @@ void checkControl() {
   }
   // Direct CC logic: turn off after duration
   static int lastSentValue = -1;
-  if (ccMessagingEnabled) {
+  if (ccEnable == 1) {
     if (controlMessage.value != 0 && currentMillis > controlMessage.duration) {
       Serial.print("[MIDI CC] type=");
       Serial.print(controlMessage.type);
