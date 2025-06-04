@@ -1,6 +1,11 @@
 
 #include "midi_handling.h"
 
+#if BLE_MIDI_SUPPORTED
+// BLE MIDI enable flag
+bool bleMidiEnabled = false;
+#endif
+
 // Define the USB MIDI object
 Adafruit_USBD_MIDI usb_midi;
 
@@ -10,6 +15,30 @@ MIDI_CREATE_INSTANCE(Adafruit_USBD_MIDI, usb_midi, usbMIDI);
 MIDI_CREATE_INSTANCE(HardwareSerial, Serial1, MIDI);
 // Forward declaration
 void triggerChord();
+
+#if BLE_MIDI_SUPPORTED
+// BLE MIDI initialization and loop
+void bleMidiInit() {
+    BLEMidiClient.begin("Midi client");
+}
+
+void bleMidiLoop() {
+    if (!bleMidiEnabled) return;
+    if (!BLEMidiClient.isConnected()) {
+        int nDevices = BLEMidiClient.scan();
+        if (nDevices > 0) {
+            if (BLEMidiClient.connect(0)) {
+                Serial.println("BLE MIDI Connection established");
+            } else {
+                Serial.println("BLE MIDI Connection failed");
+                delay(3000);
+            }
+        }
+    }
+}
+#else
+// BLE MIDI not supported: do not define stubs here, only in the header
+#endif
 
 void debugPrintNote(int value, int velocity, int notechannel) {
   Serial.print("Note : value=");
@@ -21,7 +50,6 @@ void debugPrintNote(int value, int velocity, int notechannel) {
 }
 
 void setNote(int value, int velocity, long duration, int notechannel, bool debug) {
-
 
   for (int i = 0; i < polyphony; i++) {
 
@@ -39,9 +67,19 @@ void setNote(int value, int velocity, long duration, int notechannel, bool debug
       if (QY8) {
         MIDI.sendNoteOn(value, velocity, notechannel);
         usbMIDI.sendNoteOn(value, velocity, notechannel);
+#if BLE_MIDI_SUPPORTED
+        if (bleMidiEnabled && BLEMidiClient.isConnected()) {
+          BLEMidiClient.noteOn(notechannel, value, velocity);
+        }
+#endif
       } else {
         MIDI.sendNoteOn(value, velocity, channel);
         usbMIDI.sendNoteOn(value, velocity, channel);
+#if BLE_MIDI_SUPPORTED
+        if (bleMidiEnabled && BLEMidiClient.isConnected()) {
+          BLEMidiClient.noteOn(channel, value, velocity);
+        }
+#endif
       }
 
       if (noteLEDs == 1) {
@@ -60,27 +98,41 @@ void setControl(int type, int value, int velocity, long duration) {
   controlMessage.velocity = velocity;
   controlMessage.period = duration;
   controlMessage.duration = currentMillis + duration;
+  // Direct CC logic: send CC immediately, schedule off
+  if (ccMessagingEnabled) {
+    MIDI.sendControlChange(type, velocity, channel);
+    usbMIDI.sendControlChange(type, velocity, channel);
+    controlMessage.value = velocity; // Track last sent value
+  }
 }
 
 void checkControl() {
-  signed int distance = controlMessage.velocity - controlMessage.value;
-  if (distance != 0) {
-    if (currentMillis > controlMessage.duration) {
-      controlMessage.duration = currentMillis + controlMessage.period;
-      if (distance > 0) {
-        controlMessage.value += 1;
-      } else {
-        controlMessage.value -= 1;
-      }
-      MIDI.sendControlChange(controlMessage.type, controlMessage.value, channel);
-      if (controlVoltage) {
-        if (distance > 0) {
-          rampUp(controlLED, map(controlMessage.value, 0, 127, 0, 255), 5);
-        } else {
-          rampDown(controlLED, map(controlMessage.value, 0, 127, 0, 255), 5);
-        }
-      }
+  // Guard: skip if not properly initialized
+  if (controlMessage.period == 0 || controlMessage.type == 0) {
+    return;
+  }
+  // Range checks
+  if (controlMessage.value < 0) controlMessage.value = 0;
+  if (controlMessage.value > 127) controlMessage.value = 127;
+  if (controlLED < 0 || controlLED >= LED_NUM) {
+    // Auto-correct invalid controlLED to 0
+    controlLED = 0;
+  }
+  // Direct CC logic: turn off after duration
+  static int lastSentValue = -1;
+  if (ccMessagingEnabled) {
+    if (controlMessage.value != 0 && currentMillis > controlMessage.duration) {
+      Serial.print("[MIDI CC] type=");
+      Serial.print(controlMessage.type);
+      Serial.print(" value=0 (auto reset)");
+      Serial.print(" channel=");
+      Serial.println(channel);
+      MIDI.sendControlChange(controlMessage.type, 0, channel);
+      usbMIDI.sendControlChange(controlMessage.type, 0, channel);
+      controlMessage.value = 0;
+      lastSentValue = 0;
     }
+    return;
   }
 }
 
@@ -92,9 +144,19 @@ void checkNote() {
         if (QY8) {
           MIDI.sendNoteOff(noteArray[i].value, 0, noteArray[i].channel);
           usbMIDI.sendNoteOff(noteArray[i].value, 0, noteArray[i].channel);
+#if BLE_MIDI_SUPPORTED
+          if (bleMidiEnabled && BLEMidiClient.isConnected()) {
+            BLEMidiClient.noteOff(noteArray[i].channel, noteArray[i].value, 0);
+          }
+#endif
         } else {
           MIDI.sendNoteOff(noteArray[i].value, 0, channel);
           usbMIDI.sendNoteOff(noteArray[i].value, 0, channel);
+#if BLE_MIDI_SUPPORTED
+          if (bleMidiEnabled && BLEMidiClient.isConnected()) {
+            BLEMidiClient.noteOff(channel, noteArray[i].value, 0);
+          }
+#endif
         }
         noteArray[i].velocity = 0;
         if (noteLEDs == 1) rampDown(i, 0, 225);

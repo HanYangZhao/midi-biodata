@@ -41,6 +41,8 @@ void setup() {
   // This will also call usb_midi's begin()
   usbMIDI.begin(MIDI_CHANNEL_OMNI);
 
+  bleMidiInit();
+
   printGlobals();
   MIDI.begin();
   controlMessage.value = 0;
@@ -51,6 +53,8 @@ void setup() {
 void loop() {
   currentMillis = millis();
 
+  bleMidiLoop();
+
   if (sampleIndex >= samplesize) {
     analyzeSample();
   }
@@ -58,7 +62,7 @@ void loop() {
   checkNote();
 
   // Serial.println("[CHECKPOINT] checkControl about to run");
-  // checkControl();
+  checkControl();
   // Serial.println("[CHECKPOINT] checkControl finished");
 
   checkLED();

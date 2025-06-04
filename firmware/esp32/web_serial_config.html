@@ -63,6 +63,14 @@
       Velocity Max:
       <input type="number" id="velocityMax" min="1" max="127" required>
     </label>
+    <label>
+      BLE MIDI Enabled:
+      <input type="checkbox" id="bleMidiEnabled">
+    </label>
+    <label>
+      CC Messaging Enabled:
+      <input type="checkbox" id="ccMessagingEnabled">
+    </label>
     <button type="button" id="readBtn">Read All</button>
     <button type="submit">Save All</button>
   </form>
@@ -169,6 +177,7 @@
       if (obj.noteMax !== undefined) document.getElementById('noteMax').value = obj.noteMax;
       if (obj.velocityMin !== undefined) document.getElementById('velocityMin').value = obj.velocityMin;
       if (obj.velocityMax !== undefined) document.getElementById('velocityMax').value = obj.velocityMax;
+      if (obj.ccMessagingEnabled !== undefined) document.getElementById('ccMessagingEnabled').checked = !!obj.ccMessagingEnabled;
     }
 
     async function sendJson(obj) {
@@ -187,6 +196,10 @@
       await sendJson({ cmd: "read" });
     };
 
+    document.getElementById('bleMidiEnabled').onchange = async (e) => {
+      await sendJson({ cmd: "blemidi", enable: e.target.checked });
+    };
+
     document.getElementById('configForm').onsubmit = async (e) => {
       e.preventDefault();
       const thr = parseFloat(document.getElementById('threshold').value);
@@ -200,6 +213,7 @@
       const noteMax = parseInt(document.getElementById('noteMax').value, 10);
       const velocityMin = parseInt(document.getElementById('velocityMin').value, 10);
       const velocityMax = parseInt(document.getElementById('velocityMax').value, 10);
+      const ccMessagingEnabled = document.getElementById('ccMessagingEnabled').checked ? 1 : 0;
       await sendJson({
         cmd: "save",
         thr,
@@ -213,7 +227,8 @@
         noteMin,
         noteMax,
         velocityMin,
-        velocityMax
+        velocityMax,
+        ccMessagingEnabled
       });
     };
   </script>

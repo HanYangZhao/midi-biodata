@@ -21,3 +21,20 @@ The hardware design and firmware is based on the work of electricityforprogress 
 
 
 The enclosure design is however licensed under CC0 (public domain), except for the logo which is under copyright of [DipthDesign](https://www.dipth.de). For private use, anyone is free to print the enclosure with logo and without permission.
+
+
+## Installation 
+
+### Arduino nano
+
+Download https://github.com/jgillick/arduino-LEDFader/tree/master to .../Arduino/Libraries
+
+### ESP32
+
+* Copy ./firmware/esp32/arduino-LEDFader to .../Arduino/Libraries
+* Install ESP32-BLE-MIDI from Library manager
+* Device mode only support S2/S3/P4 and additional Tools menu are needed
+    USB Mode=USB-OTG (TinyUSB) for S3 and P4
+    USB CDC On Boot=Enabled, USB Firmware MSC On Boot=Disabled, USB DFU On Boot=Disabled
+
+

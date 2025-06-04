@@ -6,6 +6,15 @@
 #include "globals.h"
 #include "led_control.h"
 
+#if !defined(CONFIG_IDF_TARGET_ESP32S2) && !defined(ARDUINO_ESP32S2_DEV)
+#include <BLEMidi.h>
+#define BLE_MIDI_SUPPORTED 1
+#else
+#define BLE_MIDI_SUPPORTED 0
+#endif
+
+extern bool bleMidiEnabled;
+
 // Expose usb_midi and usbMIDI for use in other files
 extern Adafruit_USBD_MIDI usb_midi;
 extern midi::MidiInterface<midi::SerialMIDI<Adafruit_USBD_MIDI>> usbMIDI;
@@ -20,5 +29,13 @@ void MIDIpanic();
 void midiSerial(int type, int channel, int data1, int data2);
 
 void midiChordTick();
+
+#if BLE_MIDI_SUPPORTED
+void bleMidiInit();
+void bleMidiLoop();
+#else
+inline void bleMidiInit() {}
+inline void bleMidiLoop() {}
+#endif
 
 #endif // MIDI_HANDLING_H

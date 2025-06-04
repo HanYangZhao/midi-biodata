@@ -42,6 +42,7 @@ void processWebSerialConfig() {
             doc["noteMax"] = localPrefs.getUChar("noteMax", 108);
             doc["velocityMin"] = localPrefs.getUChar("velocityMin", 30);
             doc["velocityMax"] = localPrefs.getUChar("velocityMax", 127);
+            doc["ccMessagingEnabled"] = localPrefs.getUChar("ccMessagingEnabled", ccMessagingEnabled ? 1 : 0);
 
             localPrefs.end();
 
@@ -63,13 +64,27 @@ void processWebSerialConfig() {
             localPrefs.putUChar("noteMax", doc["noteMax"] | 108);
             localPrefs.putUChar("velocityMin", doc["velocityMin"] | 30);
             localPrefs.putUChar("velocityMax", doc["velocityMax"] | 127);
+            localPrefs.putUChar("ccMessagingEnabled", doc["ccMessagingEnabled"] | (ccMessagingEnabled ? 1 : 0));
 
             localPrefs.end();
 
             // Update globals
             readSettings();
 
+            // Update runtime flag
+            ccMessagingEnabled = (doc["ccMessagingEnabled"] | (ccMessagingEnabled ? 1 : 0)) ? true : false;
+
             Serial.println("{\"status\":\"saved\"}");
+        } else if (command == "blemidi") {
+#if BLE_MIDI_SUPPORTED
+            bool enable = doc["enable"] | false;
+            bleMidiEnabled = enable;
+            Serial.print("{\"status\":\"blemidi\",\"enabled\":");
+            Serial.print(bleMidiEnabled ? "true" : "false");
+            Serial.println("}");
+#else
+            Serial.println("{\"status\":\"blemidi\",\"enabled\":false,\"error\":\"BLE MIDI not supported on this board\"}");
+#endif
         } else {
             Serial.print("{\"status\":\"Unknown command\",\"command\":\"");
             Serial.print(command);

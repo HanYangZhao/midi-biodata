@@ -20,6 +20,7 @@ void readSettings() {
   noteMax = prefs.getUChar("noteMax", 108);
   velocityMin = prefs.getUChar("velocityMin", 30);
   velocityMax = prefs.getUChar("velocityMax", 127);
+  ccMessagingEnabled = prefs.getUChar("ccMessagingEnabled", 0);
 
   prefs.end();
 
@@ -41,6 +42,7 @@ void saveSettings() {
   prefs.putUChar("noteMax", noteMax);
   prefs.putUChar("velocityMin", velocityMin);
   prefs.putUChar("velocityMax", velocityMax);
+  prefs.putUChar("ccMessagingEnabled", ccMessagingEnabled ? 1 : 0);
 
   prefs.end();
 }

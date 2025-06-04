@@ -67,13 +67,19 @@ void analyzeSample() {
       previousNotes[1] = previousNotes[0];
       previousNotes[0] = setnote;
 
+      bool noteSent = false;
       if (QY8) {
         setNote(setnote, velocity, dur, notechannel,true);
+        noteSent = true;
       } else {
         setNote(setnote, velocity, dur, channel,true);
+        noteSent = true;
       }
 
-      setControl(controlNumber, controlMessage.value, delta % 127, ramp);
+      if (noteSent && ccMessagingEnabled) {
+        int ccValue = map(delta, 0, 1023, 0, 127);
+        setControl(controlNumber, ccValue, ccValue, dur);
+      }
     }
 
     sampleIndex = 0;

@@ -56,6 +56,8 @@ extern byte QY8;
 extern byte controlNumber;
 extern byte controlVoltage;
 
+extern bool ccMessagingEnabled;
+
 extern int value;
 
 extern volatile unsigned long microseconds;

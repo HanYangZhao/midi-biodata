@@ -40,6 +40,7 @@ uint8_t velocityMax = 127;
 byte QY8 = 0;
 byte controlNumber = 80;
 byte controlVoltage = 1;
+bool ccMessagingEnabled = false;
 
 int value = 0;
 
