@@ -65,7 +65,7 @@
     </label>
     <label>
       BLE MIDI Enabled:
-      <input type="checkbox" id="bleMidiEnabled">
+      <input type="checkbox" id="bleEnabled">
     </label>
     <label>
       CC Messaging Enabled:
@@ -178,6 +178,7 @@
       if (obj.velocityMin !== undefined) document.getElementById('velocityMin').value = obj.velocityMin;
       if (obj.velocityMax !== undefined) document.getElementById('velocityMax').value = obj.velocityMax;
       if (obj.ccEnable !== undefined) document.getElementById('ccEnable').checked = !!obj.ccEnable;
+      if (obj.bleEnabled !== undefined) document.getElementById('bleEnabled').checked = !!obj.bleEnabled;
     }
 
     async function sendJson(obj) {
@@ -196,7 +197,7 @@
       await sendJson({ cmd: "read" });
     };
 
-    document.getElementById('bleMidiEnabled').onchange = async (e) => {
+    document.getElementById('bleEnabled').onchange = async (e) => {
       await sendJson({ cmd: "blemidi", enable: e.target.checked });
     };
 
@@ -214,6 +215,7 @@
       const velocityMin = parseInt(document.getElementById('velocityMin').value, 10);
       const velocityMax = parseInt(document.getElementById('velocityMax').value, 10);
       const ccEnable = document.getElementById('ccEnable').checked ? 1 : 0;
+      const bleEnabled = document.getElementById('bleEnabled').checked ? 1 : 0;
       await sendJson({
         cmd: "save",
         thr,
@@ -228,7 +230,8 @@
         noteMax,
         velocityMin,
         velocityMax,
-        ccEnable
+        ccEnable,
+        bleEnabled
       });
     };
   </script>

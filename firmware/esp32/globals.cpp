@@ -41,6 +41,7 @@ byte QY8 = 0;
 byte controlNumber = 80;
 byte controlVoltage = 1;
 uint8_t ccEnable = 0;
+uint8_t bleEnabled = 0;
 
 int value = 0;
 
@@ -92,5 +93,6 @@ void printGlobals() {
   Serial.print("velocityMin: "); Serial.println(velocityMin);
   Serial.print("velocityMax: "); Serial.println(velocityMax);
   Serial.print("ccEnable: "); Serial.println(ccEnable);
+  Serial.print("bleEnabled: "); Serial.println(bleEnabled);
   Serial.println("-----------------------------");
 }

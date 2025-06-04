@@ -23,6 +23,7 @@ void readSettings() {
 
   // Read ccEnable as int
   ccEnable = prefs.getUChar("ccEnable", 0);
+  bleEnabled = prefs.getUChar("bleEnabled", 0);
 
   prefs.end();
 
@@ -46,6 +47,7 @@ void saveSettings() {
   prefs.putUChar("velocityMin", velocityMin);
   prefs.putUChar("velocityMax", velocityMax);
   prefs.putUChar("ccEnable", ccEnable);
+  prefs.putUChar("bleEnabled", bleEnabled);
   prefs.end();
 }
 
@@ -68,5 +70,6 @@ void initializeEEPROM() {
   velocityMin = 30;
   velocityMax = 127;
   ccEnable = 1;
+  bleEnabled = 0;
   saveSettings();
 }

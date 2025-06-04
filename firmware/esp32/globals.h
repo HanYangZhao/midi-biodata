@@ -57,6 +57,7 @@ extern byte controlNumber;
 extern byte controlVoltage;
 
 extern uint8_t ccEnable;
+extern uint8_t bleEnabled;
 
 extern int value;
 

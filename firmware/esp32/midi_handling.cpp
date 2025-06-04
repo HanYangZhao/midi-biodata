@@ -3,7 +3,7 @@
 
 #if BLE_MIDI_SUPPORTED
 // BLE MIDI enable flag
-bool bleMidiEnabled = false;
+uint8_t bleEnabled = 0;
 #endif
 
 // Define the USB MIDI object
@@ -23,7 +23,7 @@ void bleMidiInit() {
 }
 
 void bleMidiLoop() {
-    if (!bleMidiEnabled) return;
+    if (!bleEnabled) return;
     if (!BLEMidiClient.isConnected()) {
         int nDevices = BLEMidiClient.scan();
         if (nDevices > 0) {
@@ -68,7 +68,7 @@ void setNote(int value, int velocity, long duration, int notechannel, bool debug
         MIDI.sendNoteOn(value, velocity, notechannel);
         usbMIDI.sendNoteOn(value, velocity, notechannel);
 #if BLE_MIDI_SUPPORTED
-        if (bleMidiEnabled && BLEMidiClient.isConnected()) {
+        if (bleEnabled && BLEMidiClient.isConnected()) {
           BLEMidiClient.noteOn(notechannel, value, velocity);
         }
 #endif
@@ -76,7 +76,7 @@ void setNote(int value, int velocity, long duration, int notechannel, bool debug
         MIDI.sendNoteOn(value, velocity, channel);
         usbMIDI.sendNoteOn(value, velocity, channel);
 #if BLE_MIDI_SUPPORTED
-        if (bleMidiEnabled && BLEMidiClient.isConnected()) {
+        if (bleEnabled && BLEMidiClient.isConnected()) {
           BLEMidiClient.noteOn(channel, value, velocity);
         }
 #endif
@@ -151,7 +151,7 @@ void checkNote() {
           MIDI.sendNoteOff(noteArray[i].value, 0, noteArray[i].channel);
           usbMIDI.sendNoteOff(noteArray[i].value, 0, noteArray[i].channel);
 #if BLE_MIDI_SUPPORTED
-          if (bleMidiEnabled && BLEMidiClient.isConnected()) {
+          if (bleEnabled && BLEMidiClient.isConnected()) {
             BLEMidiClient.noteOff(noteArray[i].channel, noteArray[i].value, 0);
           }
 #endif
@@ -159,7 +159,7 @@ void checkNote() {
           MIDI.sendNoteOff(noteArray[i].value, 0, channel);
           usbMIDI.sendNoteOff(noteArray[i].value, 0, channel);
 #if BLE_MIDI_SUPPORTED
-          if (bleMidiEnabled && BLEMidiClient.isConnected()) {
+          if (bleEnabled && BLEMidiClient.isConnected()) {
             BLEMidiClient.noteOff(channel, noteArray[i].value, 0);
           }
 #endif

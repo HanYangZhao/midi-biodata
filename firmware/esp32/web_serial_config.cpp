@@ -42,6 +42,7 @@ void processWebSerialConfig() {
             doc["velocityMin"] = velocityMin;
             doc["velocityMax"] = velocityMax;
             doc["ccEnable"] = ccEnable;
+            doc["bleEnabled"] = bleEnabled;
 
             serializeJson(doc, Serial);
             Serial.println();
@@ -60,21 +61,20 @@ void processWebSerialConfig() {
             velocityMin = doc["velocityMin"] | velocityMin;
             velocityMax = doc["velocityMax"] | velocityMax;
             ccEnable = doc["ccEnable"];
+#if defined(BLE_MIDI_SUPPORTED) && BLE_MIDI_SUPPORTED
+            bleEnabled = doc["bleEnabled"];
+#else
+            bleEnabled = doc["bleEnabled"];
+            if (bleEnabled) {
+                Serial.println("[ERROR] BLE not supported on this board. bleEnabled set to 0.");
+                bleEnabled = 0;
+            }
+#endif
 
             // Save all settings using firmware's saveSettings (ensures ccEnable is persisted)
             saveSettings();
 
             Serial.println("{\"status\":\"saved\"}");
-        } else if (command == "blemidi") {
-#if BLE_MIDI_SUPPORTED
-            bool enable = doc["enable"] | false;
-            bleMidiEnabled = enable;
-            Serial.print("{\"status\":\"blemidi\",\"enabled\":");
-            Serial.print(bleMidiEnabled ? "true" : "false");
-            Serial.println("}");
-#else
-            Serial.println("{\"status\":\"blemidi\",\"enabled\":false,\"error\":\"BLE MIDI not supported on this board\"}");
-#endif
         } else {
             Serial.print("{\"status\":\"Unknown command\",\"command\":\"");
             Serial.print(command);

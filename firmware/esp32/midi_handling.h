@@ -13,7 +13,7 @@
 #define BLE_MIDI_SUPPORTED 0
 #endif
 
-extern bool bleMidiEnabled;
+extern uint8_t bleEnabled;
 
 // Expose usb_midi and usbMIDI for use in other files
 extern Adafruit_USBD_MIDI usb_midi;
