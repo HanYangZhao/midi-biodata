@@ -52,6 +52,7 @@ void processWebSerialConfig() {
                 p["rootNote"] = presets[i].rootNote;
                 p["midiCCTrigger"] = presets[i].midiCCTrigger;
                 p["midiPCTrigger"] = presets[i].midiPCTrigger;
+                p["droneChordQ"] = presets[i].droneChordQ;
             }
 
             serializeJson(doc, Serial);
@@ -88,13 +89,32 @@ void processWebSerialConfig() {
                     presets[i].rootNote = p["rootNote"] | presets[i].rootNote;
                     presets[i].midiCCTrigger = p["midiCCTrigger"] | presets[i].midiCCTrigger;
                     presets[i].midiPCTrigger = p["midiPCTrigger"] | presets[i].midiPCTrigger;
+                    presets[i].droneChordQ = p["droneChordQ"] | presets[i].droneChordQ;
                 }
             }
             saveSettings();
             Serial.println("{\"status\":\"all_saved\"}");
         } else if (command == "save_presets") {
-            // Update all presets from JSON array
-            if (doc.containsKey("presets") && doc["presets"].is<JsonArray>()) {
+            // If an index is provided, update only that preset
+            if (doc.containsKey("index") && doc.containsKey("presets") && doc["presets"].is<JsonArray>()) {
+                int idx = doc["index"];
+                JsonArray arr = doc["presets"].as<JsonArray>();
+                if (idx >= 0 && idx < 8 && arr.size() > 0) {
+                    JsonObject p = arr[0];
+                    presets[idx].scale = p["scale"] | presets[idx].scale;
+                    presets[idx].rootNote = p["rootNote"] | presets[idx].rootNote;
+                    presets[idx].midiCCTrigger = p["midiCCTrigger"] | presets[idx].midiCCTrigger;
+                    presets[idx].midiPCTrigger = p["midiPCTrigger"] | presets[idx].midiPCTrigger;
+                    presets[idx].droneChordQ = p["droneChordQ"] | presets[idx].droneChordQ;
+                    saveSettings();
+                    Serial.print("{\"status\":\"preset_saved\",\"index\":");
+                    Serial.print(idx);
+                    Serial.println("}");
+                } else {
+                    Serial.println("{\"status\":\"error\",\"error\":\"Invalid preset index or array\"}");
+                }
+            } else if (doc.containsKey("presets") && doc["presets"].is<JsonArray>()) {
+                // Update all presets from JSON array (legacy/multi)
                 JsonArray arr = doc["presets"].as<JsonArray>();
                 int count = arr.size() < 8 ? arr.size() : 8;
                 for (int i = 0; i < count; ++i) {
@@ -103,6 +123,7 @@ void processWebSerialConfig() {
                     presets[i].rootNote = p["rootNote"] | presets[i].rootNote;
                     presets[i].midiCCTrigger = p["midiCCTrigger"] | presets[i].midiCCTrigger;
                     presets[i].midiPCTrigger = p["midiPCTrigger"] | presets[i].midiPCTrigger;
+                    presets[i].droneChordQ = p["droneChordQ"] | presets[i].droneChordQ;
                 }
                 saveSettings();
                 Serial.println("{\"status\":\"presets_saved\"}");

@@ -33,6 +33,8 @@ void readSettings() {
     presets[i].midiCCTrigger = prefs.getUChar(key, 20 + i);
     snprintf(key, sizeof(key), "preset%d_pc", i);
     presets[i].midiPCTrigger = prefs.getUChar(key, i);
+    snprintf(key, sizeof(key), "preset%d_quality", i);
+    presets[i].droneChordQ = prefs.getUChar(key, 0);
   }
 
   prefs.end();
@@ -69,6 +71,8 @@ void saveSettings() {
     prefs.putUChar(key, presets[i].midiCCTrigger);
     snprintf(key, sizeof(key), "preset%d_pc", i);
     prefs.putUChar(key, presets[i].midiPCTrigger);
+    snprintf(key, sizeof(key), "preset%d_quality", i);
+    prefs.putUChar(key, presets[i].droneChordQ);
   }
 
   prefs.end();
@@ -99,6 +103,7 @@ void initializeEEPROM() {
     presets[i].rootNote = 0;
     presets[i].midiCCTrigger = 20 + i;
     presets[i].midiPCTrigger = i;
+    presets[i].droneChordQ = 0;
   }
   saveSettings();
 }

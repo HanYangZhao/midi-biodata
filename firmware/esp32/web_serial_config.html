@@ -85,7 +85,7 @@
     const presetList = document.getElementById('presetList');
     const NUM_PRESETS = 8;
     let presetData = Array(NUM_PRESETS).fill().map(() => ({
-      scale: 0, rootNote: 0, midiCCTrigger: 20, midiPCTrigger: 0
+      scale: 0, rootNote: 0, midiCCTrigger: 20, midiPCTrigger: 0, droneChordQ: 0
     }));
     let activePreset = 0;
 
@@ -95,7 +95,7 @@
       card.id = `preset-card-${idx}`;
       if (idx === activePreset) card.classList.add('preset-active');
       card.innerHTML = `
-        <div class="preset-title">Preset ${idx}</div>
+        <div class="preset-title">Preset ${idx + 1}</div>
         <div class="preset-fields">
           <label>Scale:
             <select id="preset-scale-${idx}"></select>
@@ -108,6 +108,12 @@
           </label>
           <label>MIDI PC Trigger:
             <input type="number" id="preset-pc-${idx}" min="0" max="127">
+          </label>
+          <label>Drone Chord Quality:
+            <select id="preset-quality-${idx}">
+              <option value="0">Triad</option>
+              <option value="1">Seventh</option>
+            </select>
           </label>
         </div>
         <div class="preset-controls">
@@ -138,6 +144,7 @@
       rootSel.value = presetData[idx].rootNote;
       card.querySelector(`#preset-cc-${idx}`).value = presetData[idx].midiCCTrigger;
       card.querySelector(`#preset-pc-${idx}`).value = presetData[idx].midiPCTrigger;
+      card.querySelector(`#preset-quality-${idx}`).value = presetData[idx].droneChordQ || 0;
       // Activate button
       card.querySelector(`#preset-activate-${idx}`).onclick = () => {
         activePreset = idx;
@@ -150,7 +157,13 @@
         presetData[idx].rootNote = parseInt(rootSel.value, 10);
         presetData[idx].midiCCTrigger = parseInt(card.querySelector(`#preset-cc-${idx}`).value, 10);
         presetData[idx].midiPCTrigger = parseInt(card.querySelector(`#preset-pc-${idx}`).value, 10);
-        sendPresets();
+        presetData[idx].droneChordQ = parseInt(card.querySelector(`#preset-quality-${idx}`).value, 10);
+        // Only send this preset for save
+        sendJson({
+          cmd: "save_presets",
+          presets: [presetData[idx]],
+          index: idx
+        });
       };
       return card;
     }
@@ -205,6 +218,11 @@
                   const jsonStr = line.substring(jsonStart, jsonEnd + 1);
                   const obj = JSON.parse(jsonStr);
                   updateForm(obj);
+                  // Handle active preset highlight from firmware
+                  if (obj.status === "active_preset_set" && typeof obj.index === "number") {
+                    activePreset = obj.index;
+                    updatePresetUI();
+                  }
                 }
               } catch {}
             }
@@ -231,13 +249,15 @@
       if (obj.velocityMax !== undefined) document.getElementById('velocityMax').value = obj.velocityMax;
       if (obj.ccEnable !== undefined) document.getElementById('ccEnable').checked = !!obj.ccEnable;
       if (obj.bleEnabled !== undefined) document.getElementById('bleEnabled').checked = !!obj.bleEnabled;
+      if (typeof obj.activePreset === "number") activePreset = obj.activePreset;
       // Update presets if present
       if (obj.presets && Array.isArray(obj.presets)) {
         presetData = obj.presets.map((p, i) => ({
           scale: p.scale ?? 0,
           rootNote: p.rootNote ?? 0,
           midiCCTrigger: p.midiCCTrigger ?? (20 + i),
-          midiPCTrigger: p.midiPCTrigger ?? i
+          midiPCTrigger: p.midiPCTrigger ?? i,
+          droneChordQ: p.droneChordQ ?? 0
         }));
         updatePresetUI();
       }
@@ -277,11 +297,13 @@
         const rootSel = document.getElementById(`preset-root-${i}`);
         const ccInput = document.getElementById(`preset-cc-${i}`);
         const pcInput = document.getElementById(`preset-pc-${i}`);
-        if (scaleSel && rootSel && ccInput && pcInput) {
+        const qualitySel = document.getElementById(`preset-quality-${i}`);
+        if (scaleSel && rootSel && ccInput && pcInput && qualitySel) {
           presetData[i].scale = parseInt(scaleSel.value, 10);
           presetData[i].rootNote = parseInt(rootSel.value, 10);
           presetData[i].midiCCTrigger = parseInt(ccInput.value, 10);
           presetData[i].midiPCTrigger = parseInt(pcInput.value, 10);
+          presetData[i].droneChordQ = parseInt(qualitySel.value, 10);
         }
       }
     }

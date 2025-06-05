@@ -125,6 +125,10 @@ void trySwitchPresetByCC(uint8_t ccNum) {
         activePreset = i;
         Serial.print("[PRESET] Switched to preset ");
         Serial.println(i + 1);
+        // Notify web UI of active preset change
+        Serial.print("{\"status\":\"active_preset_set\",\"index\":");
+        Serial.print(i);
+        Serial.println("}");
       }
       break;
     }
@@ -269,18 +273,23 @@ static int barsElapsed = 0;
 
 void midiChordTick() {
   static int prevDroneEnabled = 1;
-  int triad[3] = {
-    presets[activePreset].rootNote + scale[presets[activePreset].scale][1],
-    presets[activePreset].rootNote + scale[presets[activePreset].scale][3],
-    presets[activePreset].rootNote + scale[presets[activePreset].scale][5]
-  };
+  // Chord notes: triad or seventh
+  int chordNotes[4];
+  int chordLen = 3;
+  chordNotes[0] = presets[activePreset].rootNote + scale[presets[activePreset].scale][1];
+  chordNotes[1] = presets[activePreset].rootNote + scale[presets[activePreset].scale][3];
+  chordNotes[2] = presets[activePreset].rootNote + scale[presets[activePreset].scale][5];
+  if (presets[activePreset].droneChordQ == 1) {
+    chordNotes[3] = presets[activePreset].rootNote + scale[presets[activePreset].scale][7];
+    chordLen = 4;
+  }
 
   if (!globalSettings.droneEnabled) {
     if (prevDroneEnabled) {
       // Drone was just disabled, turn off notes
-      for (int i = 0; i < 3; i++) {
-        MIDI.sendNoteOff(triad[i], 0, globalSettings.channel);
-        usbMIDI.sendNoteOff(triad[i], 0, globalSettings.channel);
+      for (int i = 0; i < chordLen; i++) {
+        MIDI.sendNoteOff(chordNotes[i], 0, globalSettings.channel);
+        usbMIDI.sendNoteOff(chordNotes[i], 0, globalSettings.channel);
       }
     }
     prevDroneEnabled = globalSettings.droneEnabled;
@@ -301,26 +310,29 @@ void midiChordTick() {
 }
 
 void triggerChord() {
-  // Triad drone: root, 3rd, 5th of the current scale
-  // The root note is played one octave below
-  int triad[3] = {
-    (presets[activePreset].rootNote + scale[presets[activePreset].scale][1]) - 12, // root one octave down
-    presets[activePreset].rootNote + scale[presets[activePreset].scale][3],
-    presets[activePreset].rootNote + scale[presets[activePreset].scale][5]
-  };
+  // Chord: triad or seventh, root note played one octave down
+  int chordNotes[4];
+  int chordLen = 3;
+  chordNotes[0] = (presets[activePreset].rootNote + scale[presets[activePreset].scale][1]) - 12; // root one octave down
+  chordNotes[1] = presets[activePreset].rootNote + scale[presets[activePreset].scale][3];
+  chordNotes[2] = presets[activePreset].rootNote + scale[presets[activePreset].scale][5];
+  if (presets[activePreset].droneChordQ == 1) {
+    chordNotes[3] = presets[activePreset].rootNote + scale[presets[activePreset].scale][7];
+    chordLen = 4;
+  }
 
   // Duration for drone = X bars
   unsigned long msPerBar = (unsigned long)(60000.0 / globalSettings.bpm * 4);
   long chordDuration = msPerBar * globalSettings.barperch;
 
-  // Send NoteOff for all triad notes (to avoid overlap)
-  for (int i = 0; i < 3; i++) {
-    MIDI.sendNoteOff(triad[i], 0, globalSettings.channel);
-    usbMIDI.sendNoteOff(triad[i], 0, globalSettings.channel);
+  // Send NoteOff for all chord notes (to avoid overlap)
+  for (int i = 0; i < chordLen; i++) {
+    MIDI.sendNoteOff(chordNotes[i], 0, globalSettings.channel);
+    usbMIDI.sendNoteOff(chordNotes[i], 0, globalSettings.channel);
   }
 
   // Send chord notes via MIDI
-  for (int i = 0; i < 3; i++) {
-    setNote(triad[i], 40, chordDuration, globalSettings.channel, false);
+  for (int i = 0; i < chordLen; i++) {
+    setNote(chordNotes[i], 40, chordDuration, globalSettings.channel, false);
   }
 }
