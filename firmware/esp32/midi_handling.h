@@ -34,6 +34,7 @@ void triggerChordFreeDrone();
 void setupMidiPresetHandlers();
 void trySwitchPresetByCC(uint8_t ccNum);
 void trySwitchPresetByPC(uint8_t pcNum);
+void trySwitchPresetByNote(uint8_t noteNum);
 
 #if BLE_MIDI_SUPPORTED
 void bleMidiInit();

@@ -45,13 +45,15 @@ typedef struct {
   uint8_t ccEnable;
   uint8_t droneVel; // velocity for drone notes
   uint8_t droneMode; // 0 = freeDrone, 1 = BPMDrone
+  uint8_t droneChannel; // MIDI channel for drone notes
 } GlobalSettings;
 
 typedef struct {
   uint8_t scale;           // Index of the scale to use for this preset (0 = Chromatic, 1 = Ionian, etc.)
   uint8_t rootNote;        // MIDI note number for the root note of the scale (0 = C, 1 = C#, ..., 11 = B)
-  uint8_t midiCCTrigger;   // MIDI Control Change (CC) number that triggers this preset (0-127)
-  uint8_t midiPCTrigger;   // MIDI Program Change (PC) number that triggers this preset (0-127)
+  int8_t midiCCTrigger;    // MIDI Control Change (CC) number that triggers this preset (0-127, -1 disables)
+  int8_t midiPCTrigger;    // MIDI Program Change (PC) number that triggers this preset (0-127, -1 disables)
+  int8_t midiNoteTrigger;  // MIDI Note number that triggers this preset (<min or >max, -1 disables)
   uint8_t droneChordQ; // 0 = triad, 1 = seventh chord
 } PresetSettings;
 

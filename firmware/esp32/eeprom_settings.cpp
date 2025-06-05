@@ -23,6 +23,7 @@ void readSettings() {
   globalSettings.ccEnable = prefs.getUChar("ccEnable", 0);
   globalSettings.droneVel = prefs.getUChar("droneVel", 40); // default 40
   globalSettings.droneMode = prefs.getUChar("droneMode", 0); // default freeDrone
+  globalSettings.droneChannel = prefs.getUChar("droneChannel", 1); // default channel 1
 
   // Load presets
   for (int i = 0; i < 8; ++i) {
@@ -32,9 +33,11 @@ void readSettings() {
     snprintf(key, sizeof(key), "preset%d_root", i);
     presets[i].rootNote = prefs.getUChar(key, 0);
     snprintf(key, sizeof(key), "preset%d_cc", i);
-    presets[i].midiCCTrigger = prefs.getUChar(key, 20 + i);
+    presets[i].midiCCTrigger = prefs.getChar(key, -1);
     snprintf(key, sizeof(key), "preset%d_pc", i);
-    presets[i].midiPCTrigger = prefs.getUChar(key, i);
+    presets[i].midiPCTrigger = prefs.getChar(key, -1);
+    snprintf(key, sizeof(key), "preset%d_note", i);
+    presets[i].midiNoteTrigger = prefs.getChar(key, -1);
     snprintf(key, sizeof(key), "preset%d_quality", i);
     presets[i].droneChordQ = prefs.getUChar(key, 0);
   }
@@ -63,6 +66,7 @@ void saveSettings() {
   prefs.putUChar("ccEnable", globalSettings.ccEnable);
   prefs.putUChar("droneVel", globalSettings.droneVel);
   prefs.putUChar("droneMode", globalSettings.droneMode);
+  prefs.putUChar("droneChannel", globalSettings.droneChannel);
 
   // Save presets
   for (int i = 0; i < 8; ++i) {
@@ -72,9 +76,11 @@ void saveSettings() {
     snprintf(key, sizeof(key), "preset%d_root", i);
     prefs.putUChar(key, presets[i].rootNote);
     snprintf(key, sizeof(key), "preset%d_cc", i);
-    prefs.putUChar(key, presets[i].midiCCTrigger);
+    prefs.putChar(key, presets[i].midiCCTrigger);
     snprintf(key, sizeof(key), "preset%d_pc", i);
-    prefs.putUChar(key, presets[i].midiPCTrigger);
+    prefs.putChar(key, presets[i].midiPCTrigger);
+    snprintf(key, sizeof(key), "preset%d_note", i);
+    prefs.putChar(key, presets[i].midiNoteTrigger);
     snprintf(key, sizeof(key), "preset%d_quality", i);
     prefs.putUChar(key, presets[i].droneChordQ);
   }
@@ -107,8 +113,9 @@ void initializeEEPROM() {
   for (int i = 0; i < 8; ++i) {
     presets[i].scale = i;
     presets[i].rootNote = 0;
-    presets[i].midiCCTrigger = 20 + i;
-    presets[i].midiPCTrigger = i;
+    presets[i].midiCCTrigger = -1;
+    presets[i].midiPCTrigger = -1;
+    presets[i].midiNoteTrigger = -1;
     presets[i].droneChordQ = 0;
   }
   saveSettings();

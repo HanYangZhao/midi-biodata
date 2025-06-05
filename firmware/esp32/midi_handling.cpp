@@ -36,8 +36,8 @@ void handleMidiStart() {
   // Turn off all previous drone notes
   for (int i = 0; i < lastDroneLen; i++) {
     if (lastDroneNotes[i] >= 0) {
-      MIDI.sendNoteOff(lastDroneNotes[i], 0, globalSettings.channel);
-      usbMIDI.sendNoteOff(lastDroneNotes[i], 0, globalSettings.channel);
+      MIDI.sendNoteOff(lastDroneNotes[i], 0, globalSettings.droneChannel);
+      usbMIDI.sendNoteOff(lastDroneNotes[i], 0, globalSettings.droneChannel);
     }
   }
   lastDroneLen = 0;
@@ -113,6 +113,11 @@ void bleMidiLoop() {
 // BLE MIDI not supported: do not define stubs here, only in the header
 #endif
 
+void handleNoteOn(byte channel, byte note, byte velocity) {
+  trySwitchPresetByNote(note);
+  // Add any additional note-on logic here if needed
+}
+
 // USB/Serial MIDI Start handler
 void handleUsbMidiStart() {
   handleMidiStart();
@@ -132,6 +137,9 @@ void setupMidiPresetHandlers() {
   usbMIDI.setHandleControlChange(handleControlChange);
   MIDI.setHandleProgramChange(handleProgramChange);
   usbMIDI.setHandleProgramChange(handleProgramChange);
+
+  MIDI.setHandleNoteOn(handleNoteOn);
+  usbMIDI.setHandleNoteOn(handleNoteOn);
 
   // MIDI Start (0xFA) handler for both interfaces
   MIDI.setHandleStart(handleUsbMidiStart);
@@ -196,6 +204,7 @@ void setNote(int value, int velocity, long duration, int notechannel, bool debug
 
 void trySwitchPresetByCC(uint8_t ccNum) {
   for (int i = 0; i < 8; ++i) {
+    if (presets[i].midiCCTrigger == -1) continue;
     if (presets[i].midiCCTrigger == ccNum) {
       if (activePreset != i) {
         activePreset = i;
@@ -217,12 +226,36 @@ void trySwitchPresetByCC(uint8_t ccNum) {
 
 void trySwitchPresetByPC(uint8_t pcNum) {
   for (int i = 0; i < 8; ++i) {
+    if (presets[i].midiPCTrigger == -1) continue;
     if (presets[i].midiPCTrigger == pcNum) {
       if (activePreset != i) {
         activePreset = i;
         Serial.print("[PRESET] Switched to preset ");
         Serial.println(i + 1);
         // In freeDrone mode, change drone notes immediately
+        if (globalSettings.droneEnabled && globalSettings.droneMode == 0) {
+          triggerChordFreeDrone();
+        }
+      }
+      break;
+    }
+  }
+}
+
+// Switch preset by MIDI note (noteNum)
+// Only triggers if midiNoteTrigger != -1 and (noteNum < noteMin or noteNum > noteMax)
+void trySwitchPresetByNote(uint8_t noteNum) {
+  for (int i = 0; i < 8; ++i) {
+    if (presets[i].midiNoteTrigger != -1 &&
+        presets[i].midiNoteTrigger == noteNum &&
+        (noteNum < globalSettings.noteMin || noteNum > globalSettings.noteMax)) {
+      if (activePreset != i) {
+        activePreset = i;
+        Serial.print("[PRESET] Switched to preset (note) ");
+        Serial.println(i + 1);
+        Serial.print("{\"status\":\"active_preset_set\",\"index\":");
+        Serial.print(i);
+        Serial.println("}");
         if (globalSettings.droneEnabled && globalSettings.droneMode == 0) {
           triggerChordFreeDrone();
         }
@@ -423,8 +456,8 @@ void triggerChord() {
 
   // Send chord notes via MIDI (directly, not using setNote/noteArray)
   for (int i = 0; i < chordLen; i++) {
-    MIDI.sendNoteOn(chordNotes[i], globalSettings.droneVel, globalSettings.channel);
-    usbMIDI.sendNoteOn(chordNotes[i], globalSettings.droneVel, globalSettings.channel);
+    MIDI.sendNoteOn(chordNotes[i], globalSettings.droneVel, globalSettings.droneChannel);
+    usbMIDI.sendNoteOn(chordNotes[i], globalSettings.droneVel, globalSettings.droneChannel);
 #if BLE_MIDI_SUPPORTED
     if (globalSettings.bleEnabled && BLEMidiClient.isConnected()) {
       BLEMidiClient.noteOn(globalSettings.channel, chordNotes[i], globalSettings.droneVel);
@@ -441,8 +474,8 @@ void triggerChordFreeDrone() {
   // Turn off all previous drone notes
   for (int i = 0; i < lastDroneLen; i++) {
     if (lastDroneNotes[i] >= 0) {
-      MIDI.sendNoteOff(lastDroneNotes[i], 0, globalSettings.channel);
-      usbMIDI.sendNoteOff(lastDroneNotes[i], 0, globalSettings.channel);
+      MIDI.sendNoteOff(lastDroneNotes[i], 0, globalSettings.droneChannel);
+      usbMIDI.sendNoteOff(lastDroneNotes[i], 0, globalSettings.droneChannel);
 #if BLE_MIDI_SUPPORTED
       if (globalSettings.bleEnabled && BLEMidiClient.isConnected()) {
         BLEMidiClient.noteOff(globalSettings.channel, lastDroneNotes[i], 0);
@@ -461,8 +494,8 @@ void triggerChordFreeDrone() {
     chordLen = 4;
   }
   for (int i = 0; i < chordLen; i++) {
-    MIDI.sendNoteOn(chordNotes[i], globalSettings.droneVel, globalSettings.channel);
-    usbMIDI.sendNoteOn(chordNotes[i], globalSettings.droneVel, globalSettings.channel);
+    MIDI.sendNoteOn(chordNotes[i], globalSettings.droneVel, globalSettings.droneChannel);
+    usbMIDI.sendNoteOn(chordNotes[i], globalSettings.droneVel, globalSettings.droneChannel);
 #if BLE_MIDI_SUPPORTED
     if (globalSettings.bleEnabled && BLEMidiClient.isConnected()) {
       BLEMidiClient.noteOn(globalSettings.channel, chordNotes[i], globalSettings.droneVel);

@@ -28,12 +28,15 @@ GlobalSettings globalSettings = {
   .ccMessagingEnabled = 0,
   .maxBrightness = 190,
   .bleEnabled = 0,
-  .ccEnable = 0
+  .ccEnable = 0,
+  .droneVel = 40,
+  .droneMode = 0,
+  .droneChannel = 1
 };
 
 PresetSettings presets[8] = {
-  {0, 0, 20, 0}, {1, 0, 21, 1}, {2, 0, 22, 2}, {3, 0, 23, 3},
-  {4, 0, 24, 4}, {5, 0, 25, 5}, {6, 0, 26, 6}, {7, 0, 27, 7}
+  {0, 0, -1, -1, -1, 0}, {1, 0, -1, -1, -1, 0}, {2, 0, -1, -1, -1, 0}, {3, 0, -1, -1, -1, 0},
+  {4, 0, -1, -1, -1, 0}, {5, 0, -1, -1, -1, 0}, {6, 0, -1, -1, -1, 0}, {7, 0, -1, -1, -1, 0}
 };
 
 int activePreset = 0; // Default to preset 1

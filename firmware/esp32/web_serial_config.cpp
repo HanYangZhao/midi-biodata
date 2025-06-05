@@ -44,6 +44,7 @@ void processWebSerialConfig() {
             doc["velocityMin"] = globalSettings.velocityMin;
             doc["velocityMax"] = globalSettings.velocityMax;
             doc["droneVel"] = globalSettings.droneVel;
+            doc["droneChannel"] = globalSettings.droneChannel;
             doc["ccEnable"] = globalSettings.ccEnable;
             doc["bleEnabled"] = globalSettings.bleEnabled;
             doc["activePreset"] = activePreset;
@@ -56,6 +57,7 @@ void processWebSerialConfig() {
                 p["rootNote"] = presets[i].rootNote;
                 p["midiCCTrigger"] = presets[i].midiCCTrigger;
                 p["midiPCTrigger"] = presets[i].midiPCTrigger;
+                p["midiNoteTrigger"] = presets[i].midiNoteTrigger;
                 p["droneChordQ"] = presets[i].droneChordQ;
             }
 
@@ -75,6 +77,7 @@ void processWebSerialConfig() {
             globalSettings.velocityMin = doc["velocityMin"] | globalSettings.velocityMin;
             globalSettings.velocityMax = doc["velocityMax"] | globalSettings.velocityMax;
             globalSettings.droneVel = doc["droneVel"] | globalSettings.droneVel;
+            globalSettings.droneChannel = doc["droneChannel"] | globalSettings.droneChannel;
             globalSettings.ccEnable = doc["ccEnable"];
     #if defined(BLE_MIDI_SUPPORTED) && BLE_MIDI_SUPPORTED
             globalSettings.bleEnabled = doc["bleEnabled"];
@@ -95,6 +98,7 @@ void processWebSerialConfig() {
                     presets[i].rootNote = p["rootNote"] | presets[i].rootNote;
                     presets[i].midiCCTrigger = p["midiCCTrigger"] | presets[i].midiCCTrigger;
                     presets[i].midiPCTrigger = p["midiPCTrigger"] | presets[i].midiPCTrigger;
+                    presets[i].midiNoteTrigger = p["midiNoteTrigger"] | presets[i].midiNoteTrigger;
                     presets[i].droneChordQ = p["droneChordQ"] | presets[i].droneChordQ;
                 }
             }
@@ -111,6 +115,7 @@ void processWebSerialConfig() {
                     presets[idx].rootNote = p["rootNote"] | presets[idx].rootNote;
                     presets[idx].midiCCTrigger = p["midiCCTrigger"] | presets[idx].midiCCTrigger;
                     presets[idx].midiPCTrigger = p["midiPCTrigger"] | presets[idx].midiPCTrigger;
+                    presets[idx].midiNoteTrigger = p["midiNoteTrigger"] | presets[idx].midiNoteTrigger;
                     presets[idx].droneChordQ = p["droneChordQ"] | presets[idx].droneChordQ;
                     saveSettings();
                     Serial.print("{\"status\":\"preset_saved\",\"index\":");
