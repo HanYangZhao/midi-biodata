@@ -21,6 +21,7 @@ void readSettings() {
   globalSettings.maxBrightness = prefs.getUShort("maxBrightness", 190);
   globalSettings.bleEnabled = prefs.getUChar("bleEnabled", 0);
   globalSettings.ccEnable = prefs.getUChar("ccEnable", 0);
+  globalSettings.droneVel = prefs.getUChar("droneVel", 40); // default 40
 
   // Load presets
   for (int i = 0; i < 8; ++i) {
@@ -59,6 +60,7 @@ void saveSettings() {
   prefs.putUShort("maxBrightness", globalSettings.maxBrightness);
   prefs.putUChar("bleEnabled", globalSettings.bleEnabled);
   prefs.putUChar("ccEnable", globalSettings.ccEnable);
+  prefs.putUChar("droneVel", globalSettings.droneVel);
 
   // Save presets
   for (int i = 0; i < 8; ++i) {
@@ -97,6 +99,7 @@ void initializeEEPROM() {
   globalSettings.maxBrightness = 190;
   globalSettings.bleEnabled = 0;
   globalSettings.ccEnable = 0;
+  globalSettings.droneVel = 40;
 
   for (int i = 0; i < 8; ++i) {
     presets[i].scale = i;

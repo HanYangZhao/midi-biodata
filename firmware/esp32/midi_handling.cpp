@@ -1,4 +1,3 @@
-
 #include "midi_handling.h"
 
 #if BLE_MIDI_SUPPORTED
@@ -271,6 +270,10 @@ void midiSerial(int type, int channel, int data1, int data2) {
 static unsigned long lastChordMillis = 0;
 static int barsElapsed = 0;
 
+// --- Drone note management ---
+static int lastDroneNotes[4] = {-1, -1, -1, -1};
+static int lastDroneLen = 0;
+
 void midiChordTick() {
   static int prevDroneEnabled = 1;
   // Chord notes: triad or seventh
@@ -287,10 +290,13 @@ void midiChordTick() {
   if (!globalSettings.droneEnabled) {
     if (prevDroneEnabled) {
       // Drone was just disabled, turn off notes
-      for (int i = 0; i < chordLen; i++) {
-        MIDI.sendNoteOff(chordNotes[i], 0, globalSettings.channel);
-        usbMIDI.sendNoteOff(chordNotes[i], 0, globalSettings.channel);
+      for (int i = 0; i < lastDroneLen; i++) {
+        if (lastDroneNotes[i] >= 0) {
+          MIDI.sendNoteOff(lastDroneNotes[i], 0, globalSettings.channel);
+          usbMIDI.sendNoteOff(lastDroneNotes[i], 0, globalSettings.channel);
+        }
       }
+      lastDroneLen = 0;
     }
     prevDroneEnabled = globalSettings.droneEnabled;
     return;
@@ -325,14 +331,24 @@ void triggerChord() {
   unsigned long msPerBar = (unsigned long)(60000.0 / globalSettings.bpm * 4);
   long chordDuration = msPerBar * globalSettings.barperch;
 
-  // Send NoteOff for all chord notes (to avoid overlap)
-  for (int i = 0; i < chordLen; i++) {
-    MIDI.sendNoteOff(chordNotes[i], 0, globalSettings.channel);
-    usbMIDI.sendNoteOff(chordNotes[i], 0, globalSettings.channel);
+  // Send NoteOff for all previous drone notes (to avoid overlap)
+  for (int i = 0; i < lastDroneLen; i++) {
+    if (lastDroneNotes[i] >= 0) {
+      MIDI.sendNoteOff(lastDroneNotes[i], 0, globalSettings.channel);
+      usbMIDI.sendNoteOff(lastDroneNotes[i], 0, globalSettings.channel);
+    }
   }
 
-  // Send chord notes via MIDI
+  // Send chord notes via MIDI (directly, not using setNote/noteArray)
   for (int i = 0; i < chordLen; i++) {
-    setNote(chordNotes[i], 40, chordDuration, globalSettings.channel, false);
+    MIDI.sendNoteOn(chordNotes[i], globalSettings.droneVel, globalSettings.channel);
+    usbMIDI.sendNoteOn(chordNotes[i], globalSettings.droneVel, globalSettings.channel);
+#if BLE_MIDI_SUPPORTED
+    if (globalSettings.bleEnabled && BLEMidiClient.isConnected()) {
+      BLEMidiClient.noteOn(globalSettings.channel, chordNotes[i], globalSettings.droneVel);
+    }
+#endif
+    lastDroneNotes[i] = chordNotes[i];
   }
+  lastDroneLen = chordLen;
 }

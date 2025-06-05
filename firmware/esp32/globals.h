@@ -44,6 +44,7 @@ typedef struct {
   uint16_t maxBrightness;
   uint8_t bleEnabled;
   uint8_t ccEnable;
+  uint8_t droneVel; // velocity for drone notes
 } GlobalSettings;
 
 typedef struct {

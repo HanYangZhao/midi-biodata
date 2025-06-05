@@ -49,6 +49,7 @@
       <label>Note Max (C8=108): <input type="number" id="noteMax" min="0" max="127" required></label>
       <label>Velocity Min: <input type="number" id="velocityMin" min="1" max="127" required></label>
       <label>Velocity Max: <input type="number" id="velocityMax" min="1" max="127" required></label>
+      <label>Drone Velocity: <input type="number" id="droneVel" min="1" max="127" required></label>
       <label>BLE MIDI Enabled: <input type="checkbox" id="bleEnabled"></label>
       <label>CC Messaging Enabled: <input type="checkbox" id="ccEnable"></label>
       <div class="btn-row">
@@ -247,6 +248,7 @@
       if (obj.noteMax !== undefined) document.getElementById('noteMax').value = obj.noteMax;
       if (obj.velocityMin !== undefined) document.getElementById('velocityMin').value = obj.velocityMin;
       if (obj.velocityMax !== undefined) document.getElementById('velocityMax').value = obj.velocityMax;
+      if (obj.droneVel !== undefined) document.getElementById('droneVel').value = obj.droneVel;
       if (obj.ccEnable !== undefined) document.getElementById('ccEnable').checked = !!obj.ccEnable;
       if (obj.bleEnabled !== undefined) document.getElementById('bleEnabled').checked = !!obj.bleEnabled;
       if (typeof obj.activePreset === "number") activePreset = obj.activePreset;
@@ -320,6 +322,7 @@
       const noteMax = parseInt(document.getElementById('noteMax').value, 10);
       const velocityMin = parseInt(document.getElementById('velocityMin').value, 10);
       const velocityMax = parseInt(document.getElementById('velocityMax').value, 10);
+      const droneVel = parseInt(document.getElementById('droneVel').value, 10);
       const ccEnable = document.getElementById('ccEnable').checked ? 1 : 0;
       const bleEnabled = document.getElementById('bleEnabled').checked ? 1 : 0;
       await sendJson({
@@ -334,6 +337,7 @@
         noteMax,
         velocityMin,
         velocityMax,
+        droneVel,
         ccEnable,
         bleEnabled,
         presets: presetData

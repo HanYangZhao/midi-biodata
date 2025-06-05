@@ -41,8 +41,10 @@ void processWebSerialConfig() {
             doc["noteMax"] = globalSettings.noteMax;
             doc["velocityMin"] = globalSettings.velocityMin;
             doc["velocityMax"] = globalSettings.velocityMax;
+            doc["droneVel"] = globalSettings.droneVel;
             doc["ccEnable"] = globalSettings.ccEnable;
             doc["bleEnabled"] = globalSettings.bleEnabled;
+            doc["activePreset"] = activePreset;
 
             // Add all presets to response
             JsonArray arr = doc.createNestedArray("presets");
@@ -69,6 +71,7 @@ void processWebSerialConfig() {
             globalSettings.noteMax = doc["noteMax"] | globalSettings.noteMax;
             globalSettings.velocityMin = doc["velocityMin"] | globalSettings.velocityMin;
             globalSettings.velocityMax = doc["velocityMax"] | globalSettings.velocityMax;
+            globalSettings.droneVel = doc["droneVel"] | globalSettings.droneVel;
             globalSettings.ccEnable = doc["ccEnable"];
     #if defined(BLE_MIDI_SUPPORTED) && BLE_MIDI_SUPPORTED
             globalSettings.bleEnabled = doc["bleEnabled"];
@@ -141,6 +144,11 @@ void processWebSerialConfig() {
             } else {
                 Serial.println("{\"status\":\"error\",\"error\":\"Invalid preset index\"}");
             }
+        } else if (command == "get_active_preset") {
+            // Respond with the current active preset index
+            Serial.print("{\"status\":\"active_preset\",\"activePreset\":");
+            Serial.print(activePreset);
+            Serial.println("}");
         } else {
             Serial.print("{\"status\":\"Unknown command\",\"command\":\"");
             Serial.print(command);
