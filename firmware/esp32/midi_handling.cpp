@@ -17,6 +17,53 @@ void handleControlChange(byte channel, byte control, byte value) {
 
 // Forward declaration
 void triggerChord();
+void triggerChordFreeDrone();
+
+// --- Chord timing and triad logic ---
+static unsigned long lastChordMillis = 0;
+static int barsElapsed = 0;
+
+// --- BPM Drone MIDI clock tracking ---
+static unsigned long midiClockTicks = 0;
+static unsigned long lastMidiClockMillis = 0;
+
+// --- Drone note management ---
+static int lastDroneNotes[4] = {-1, -1, -1, -1};
+static int lastDroneLen = 0;
+
+// MIDI Start handler
+void handleMidiStart() {
+  // Turn off all previous drone notes
+  for (int i = 0; i < lastDroneLen; i++) {
+    if (lastDroneNotes[i] >= 0) {
+      MIDI.sendNoteOff(lastDroneNotes[i], 0, globalSettings.channel);
+      usbMIDI.sendNoteOff(lastDroneNotes[i], 0, globalSettings.channel);
+    }
+  }
+  lastDroneLen = 0;
+
+  // Reset timer and bar count
+  lastChordMillis = currentMillis;
+  barsElapsed = 0;
+  midiClockTicks = 0;
+
+  // Immediately trigger the chord (turn on drone notes)
+  if (globalSettings.droneMode == 1) {
+    triggerChord();
+  } else {
+    triggerChordFreeDrone();
+  }
+}
+
+// MIDI Clock handler (24 ppqn)
+void handleMidiClock() {
+  if (globalSettings.droneMode != 1) return; // Only for BPMDrone
+  midiClockTicks++;
+  // 24 clocks per quarter note, 4 quarters per bar = 96 clocks per bar
+  if (midiClockTicks % (96 * globalSettings.barperch) == 0) {
+    triggerChord();
+  }
+}
 
 #if BLE_MIDI_SUPPORTED
 // BLE MIDI Control Change callback
@@ -29,11 +76,23 @@ void bleProgramChangeCallback(uint8_t channel, uint8_t program, uint16_t timesta
   trySwitchPresetByPC(program);
 }
 
+// BLE MIDI Start callback
+void bleStartCallback(uint16_t timestamp) {
+  handleMidiStart();
+}
+
+// BLE MIDI Clock callback
+void bleClockCallback(uint16_t timestamp) {
+  handleMidiClock();
+}
+
 // BLE MIDI initialization and loop
 void bleMidiInit() {
     BLEMidiClient.begin("Midi client");
     BLEMidiClient.setControlChangeCallback(bleControlChangeCallback);
     BLEMidiClient.setProgramChangeCallback(bleProgramChangeCallback);
+    BLEMidiClient.setStartCallback(bleStartCallback);
+    BLEMidiClient.setClockCallback(bleClockCallback);
 }
 
 void bleMidiLoop() {
@@ -54,6 +113,16 @@ void bleMidiLoop() {
 // BLE MIDI not supported: do not define stubs here, only in the header
 #endif
 
+// USB/Serial MIDI Start handler
+void handleUsbMidiStart() {
+  handleMidiStart();
+}
+
+// USB/Serial MIDI Clock handler
+void handleUsbMidiClock() {
+  handleMidiClock();
+}
+
 void handleProgramChange(byte channel, byte program) {
   trySwitchPresetByPC(program);
 }
@@ -63,6 +132,14 @@ void setupMidiPresetHandlers() {
   usbMIDI.setHandleControlChange(handleControlChange);
   MIDI.setHandleProgramChange(handleProgramChange);
   usbMIDI.setHandleProgramChange(handleProgramChange);
+
+  // MIDI Start (0xFA) handler for both interfaces
+  MIDI.setHandleStart(handleUsbMidiStart);
+  usbMIDI.setHandleStart(handleUsbMidiStart);
+
+  // MIDI Clock (0xF8) handler for both interfaces
+  MIDI.setHandleClock(handleUsbMidiClock);
+  usbMIDI.setHandleClock(handleUsbMidiClock);
 }
 
 void debugPrintNote(int value, int velocity, int notechannel) {
@@ -128,6 +205,10 @@ void trySwitchPresetByCC(uint8_t ccNum) {
         Serial.print("{\"status\":\"active_preset_set\",\"index\":");
         Serial.print(i);
         Serial.println("}");
+        // In freeDrone mode, change drone notes immediately
+        if (globalSettings.droneEnabled && globalSettings.droneMode == 0) {
+          triggerChordFreeDrone();
+        }
       }
       break;
     }
@@ -141,6 +222,10 @@ void trySwitchPresetByPC(uint8_t pcNum) {
         activePreset = i;
         Serial.print("[PRESET] Switched to preset ");
         Serial.println(i + 1);
+        // In freeDrone mode, change drone notes immediately
+        if (globalSettings.droneEnabled && globalSettings.droneMode == 0) {
+          triggerChordFreeDrone();
+        }
       }
       break;
     }
@@ -254,6 +339,15 @@ void midiSerial(int type, int channel, int data1, int data2) {
     trySwitchPresetByPC(data1);
   }
 
+  // MIDI Start (0xFA)
+  if (type == 0xFA) {
+    handleMidiStart();
+  }
+  // MIDI Clock (0xF8)
+  if (type == 0xF8) {
+    handleMidiClock();
+  }
+
   byte statusbyte = (type | ((channel - 1) & 0x0F));
 #ifndef DEBUG
   Serial.write(statusbyte);
@@ -265,14 +359,6 @@ void midiSerial(int type, int channel, int data1, int data2) {
   }
 #endif
 }
-
-// --- Chord timing and triad logic ---
-static unsigned long lastChordMillis = 0;
-static int barsElapsed = 0;
-
-// --- Drone note management ---
-static int lastDroneNotes[4] = {-1, -1, -1, -1};
-static int lastDroneLen = 0;
 
 void midiChordTick() {
   static int prevDroneEnabled = 1;
@@ -302,15 +388,15 @@ void midiChordTick() {
     return;
   }
 
-  // Calculate ms per bar: (60,000 ms/min) / bpm * 4 beats/bar
-  unsigned long msPerBar = (unsigned long)(60000.0 / globalSettings.bpm * 4);
-  if (currentMillis - lastChordMillis >= msPerBar) {
-    lastChordMillis += msPerBar;
-    barsElapsed++;
-    if (barsElapsed >= globalSettings.barperch) {
-      barsElapsed = 0;
-      triggerChord();
-    }
+  // BPMDrone mode: ignore timer, handled by MIDI clock
+  if (globalSettings.droneMode == 1) {
+    prevDroneEnabled = globalSettings.droneEnabled;
+    return;
+  }
+
+  // FreeDrone mode: trigger chord on enable, and when preset changes
+  if (globalSettings.droneEnabled && prevDroneEnabled == 0) {
+    triggerChordFreeDrone();
   }
   prevDroneEnabled = globalSettings.droneEnabled;
 }
@@ -327,10 +413,6 @@ void triggerChord() {
     chordLen = 4;
   }
 
-  // Duration for drone = X bars
-  unsigned long msPerBar = (unsigned long)(60000.0 / globalSettings.bpm * 4);
-  long chordDuration = msPerBar * globalSettings.barperch;
-
   // Send NoteOff for all previous drone notes (to avoid overlap)
   for (int i = 0; i < lastDroneLen; i++) {
     if (lastDroneNotes[i] >= 0) {
@@ -340,6 +422,44 @@ void triggerChord() {
   }
 
   // Send chord notes via MIDI (directly, not using setNote/noteArray)
+  for (int i = 0; i < chordLen; i++) {
+    MIDI.sendNoteOn(chordNotes[i], globalSettings.droneVel, globalSettings.channel);
+    usbMIDI.sendNoteOn(chordNotes[i], globalSettings.droneVel, globalSettings.channel);
+#if BLE_MIDI_SUPPORTED
+    if (globalSettings.bleEnabled && BLEMidiClient.isConnected()) {
+      BLEMidiClient.noteOn(globalSettings.channel, chordNotes[i], globalSettings.droneVel);
+    }
+#endif
+    lastDroneNotes[i] = chordNotes[i];
+  }
+  lastDroneLen = chordLen;
+}
+
+// FreeDrone: just play the chord, don't turn off previous notes
+void triggerChordFreeDrone() {
+  Serial.println("free drone trigger");
+  // Turn off all previous drone notes
+  for (int i = 0; i < lastDroneLen; i++) {
+    if (lastDroneNotes[i] >= 0) {
+      MIDI.sendNoteOff(lastDroneNotes[i], 0, globalSettings.channel);
+      usbMIDI.sendNoteOff(lastDroneNotes[i], 0, globalSettings.channel);
+#if BLE_MIDI_SUPPORTED
+      if (globalSettings.bleEnabled && BLEMidiClient.isConnected()) {
+        BLEMidiClient.noteOff(globalSettings.channel, lastDroneNotes[i], 0);
+      }
+#endif
+    }
+  }
+  lastDroneLen = 0;
+  int chordNotes[4];
+  int chordLen = 3;
+  chordNotes[0] = (presets[activePreset].rootNote + scale[presets[activePreset].scale][1]) - 12;
+  chordNotes[1] = presets[activePreset].rootNote + scale[presets[activePreset].scale][3];
+  chordNotes[2] = presets[activePreset].rootNote + scale[presets[activePreset].scale][5];
+  if (presets[activePreset].droneChordQ == 1) {
+    chordNotes[3] = presets[activePreset].rootNote + scale[presets[activePreset].scale][7];
+    chordLen = 4;
+  }
   for (int i = 0; i < chordLen; i++) {
     MIDI.sendNoteOn(chordNotes[i], globalSettings.droneVel, globalSettings.channel);
     usbMIDI.sendNoteOn(chordNotes[i], globalSettings.droneVel, globalSettings.channel);

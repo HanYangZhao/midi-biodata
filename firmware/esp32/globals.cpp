@@ -107,6 +107,8 @@ void printGlobals() {
   Serial.print("maxBrightness: "); Serial.println(globalSettings.maxBrightness);
   Serial.print("bleEnabled: "); Serial.println(globalSettings.bleEnabled);
   Serial.print("ccEnable: "); Serial.println(globalSettings.ccEnable);
+  Serial.print("droneVel: "); Serial.println(globalSettings.droneVel);
+  Serial.print("droneMode: "); Serial.println(globalSettings.droneMode);
   for (int i = 0; i < 8; ++i) {
     Serial.print("Preset "); Serial.print(i); Serial.print(": scale=");
     Serial.print(presets[i].scale); Serial.print(", rootNote=");

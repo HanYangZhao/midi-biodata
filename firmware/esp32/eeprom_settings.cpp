@@ -22,6 +22,7 @@ void readSettings() {
   globalSettings.bleEnabled = prefs.getUChar("bleEnabled", 0);
   globalSettings.ccEnable = prefs.getUChar("ccEnable", 0);
   globalSettings.droneVel = prefs.getUChar("droneVel", 40); // default 40
+  globalSettings.droneMode = prefs.getUChar("droneMode", 0); // default freeDrone
 
   // Load presets
   for (int i = 0; i < 8; ++i) {
@@ -61,6 +62,7 @@ void saveSettings() {
   prefs.putUChar("bleEnabled", globalSettings.bleEnabled);
   prefs.putUChar("ccEnable", globalSettings.ccEnable);
   prefs.putUChar("droneVel", globalSettings.droneVel);
+  prefs.putUChar("droneMode", globalSettings.droneMode);
 
   // Save presets
   for (int i = 0; i < 8; ++i) {
@@ -100,6 +102,7 @@ void initializeEEPROM() {
   globalSettings.bleEnabled = 0;
   globalSettings.ccEnable = 0;
   globalSettings.droneVel = 40;
+  globalSettings.droneMode = 0;
 
   for (int i = 0; i < 8; ++i) {
     presets[i].scale = i;

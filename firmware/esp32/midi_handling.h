@@ -28,6 +28,8 @@ void midiSerial(int type, int channel, int data1, int data2);
 
 void midiChordTick();
 
+void triggerChordFreeDrone();
+
 // Preset switching handlers
 void setupMidiPresetHandlers();
 void trySwitchPresetByCC(uint8_t ccNum);

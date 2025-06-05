@@ -22,7 +22,6 @@
 // Constants
 #define SCHEMA 0x02
 
-
 // Scale constants
 const int scaleCount = 9;
 const int scaleLen = 13; // maximum scale length plus 1 for 'used length'
@@ -45,6 +44,7 @@ typedef struct {
   uint8_t bleEnabled;
   uint8_t ccEnable;
   uint8_t droneVel; // velocity for drone notes
+  uint8_t droneMode; // 0 = freeDrone, 1 = BPMDrone
 } GlobalSettings;
 
 typedef struct {

@@ -45,6 +45,12 @@
       <label>BPM: <input type="number" id="bpm" min="20" max="300" value="120" required></label>
       <label>Bars per Chord: <input type="number" id="barsperchord" min="1" max="16" value="4" required></label>
       <label>Drone Enabled: <input type="checkbox" id="droneEnabled"></label>
+      <label>Drone Mode:
+        <select id="droneMode">
+          <option value="0">Free Drone</option>
+          <option value="1">BPM Drone (sync to MIDI clock)</option>
+        </select>
+      </label>
       <label>Note Min (A0=21): <input type="number" id="noteMin" min="0" max="127" required></label>
       <label>Note Max (C8=108): <input type="number" id="noteMax" min="0" max="127" required></label>
       <label>Velocity Min: <input type="number" id="velocityMin" min="1" max="127" required></label>
@@ -244,6 +250,7 @@
       if (obj.bpm !== undefined) document.getElementById('bpm').value = obj.bpm;
       if (obj.barperch !== undefined) document.getElementById('barsperchord').value = obj.barperch;
       if (obj.drone !== undefined) document.getElementById('droneEnabled').checked = !!obj.drone;
+      if (obj.droneMode !== undefined) document.getElementById('droneMode').value = obj.droneMode;
       if (obj.noteMin !== undefined) document.getElementById('noteMin').value = obj.noteMin;
       if (obj.noteMax !== undefined) document.getElementById('noteMax').value = obj.noteMax;
       if (obj.velocityMin !== undefined) document.getElementById('velocityMin').value = obj.velocityMin;
@@ -318,6 +325,8 @@
       const maxb = parseInt(document.getElementById('maxbrightness').value, 10);
       const bpm = parseInt(document.getElementById('bpm').value, 10);
       const barperch = parseInt(document.getElementById('barsperchord').value, 10);
+      const drone = document.getElementById('droneEnabled').checked ? 1 : 0;
+      const droneMode = parseInt(document.getElementById('droneMode').value, 10);
       const noteMin = parseInt(document.getElementById('noteMin').value, 10);
       const noteMax = parseInt(document.getElementById('noteMax').value, 10);
       const velocityMin = parseInt(document.getElementById('velocityMin').value, 10);
@@ -332,7 +341,8 @@
         maxb,
         bpm,
         barperch,
-        drone: document.getElementById('droneEnabled').checked ? 1 : 0,
+        drone,
+        droneMode,
         noteMin,
         noteMax,
         velocityMin,

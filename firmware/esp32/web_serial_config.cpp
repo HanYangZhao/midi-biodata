@@ -2,6 +2,7 @@
 #include <ArduinoJson.h>
 #include "globals.h"
 #include <stdint.h>
+#include "midi_handling.h"
 
 #include "eeprom_settings.h"
 // Use a local Preferences object in this file to avoid multiple definition
@@ -12,7 +13,7 @@ void processWebSerialConfig() {
         line.trim();
         if (line.length() == 0) continue;
 
-        StaticJsonDocument<256> doc;
+        StaticJsonDocument<1024> doc;
         DeserializationError error = deserializeJson(doc, line);
         if (error) {
             Serial.print("{\"status\":\"deserializeJson() failed\",\"error\":\"");
@@ -37,6 +38,7 @@ void processWebSerialConfig() {
             doc["bpm"] = globalSettings.bpm;
             doc["barperch"] = globalSettings.barperch;
             doc["drone"] = globalSettings.droneEnabled;
+            doc["droneMode"] = globalSettings.droneMode;
             doc["noteMin"] = globalSettings.noteMin;
             doc["noteMax"] = globalSettings.noteMax;
             doc["velocityMin"] = globalSettings.velocityMin;
@@ -67,6 +69,7 @@ void processWebSerialConfig() {
             globalSettings.bpm = doc["bpm"] | globalSettings.bpm;
             globalSettings.barperch = doc["barperch"] | globalSettings.barperch;
             globalSettings.droneEnabled = doc["drone"] | globalSettings.droneEnabled;
+            globalSettings.droneMode = doc["droneMode"] | globalSettings.droneMode;
             globalSettings.noteMin = doc["noteMin"] | globalSettings.noteMin;
             globalSettings.noteMax = doc["noteMax"] | globalSettings.noteMax;
             globalSettings.velocityMin = doc["velocityMin"] | globalSettings.velocityMin;
@@ -141,6 +144,10 @@ void processWebSerialConfig() {
                 Serial.print("{\"status\":\"active_preset_set\",\"index\":");
                 Serial.print(idx);
                 Serial.println("}");
+                // Trigger freedrone chord if enabled and in freedrone mode
+                if (globalSettings.droneEnabled && globalSettings.droneMode == 0) {
+                    triggerChordFreeDrone();
+                }
             } else {
                 Serial.println("{\"status\":\"error\",\"error\":\"Invalid preset index\"}");
             }
