@@ -2,78 +2,65 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>MIDI Biodata Web Serial Config</title>
+  <title>MIDI Biodata Configurator</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 2em; }
-    label { display: block; margin-top: 1em; }
-    select, input[type="number"], input[type="text"] { width: 200px; }
+    body { font-family: Arial, sans-serif; margin: 2em; background: #f8f9fa; }
+    h2, h3 { color: #333; }
+    .section { background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 2em; margin-bottom: 2em; }
+    .section-title { margin-top: 0; }
+    .preset-list {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5em;
+    }
+    .preset-card {
+      background: #f4f7fb;
+      border: 1px solid #dde3ea;
+      border-radius: 8px;
+      padding: 1em 1.5em;
+      min-width: 260px;
+      flex: 1 1 260px;
+      box-shadow: 0 1px 4px #0001;
+    }
+    label { display: block; margin-top: 1em; color: #222; }
+    select, input[type="number"], input[type="text"] { width: 100%; }
+    .preset-title { font-weight: bold; margin-bottom: 0.5em; color: #2a4d8f; }
+    .preset-fields { margin-bottom: 0.5em; }
+    .preset-controls { display: flex; gap: 0.5em; }
     #log { width: 100%; height: 200px; margin-top: 1em; font-family: monospace; background: #f0f0f0; overflow-y: scroll; }
     button { margin-top: 1em; }
+    .btn-row { display: flex; gap: 1em; margin-top: 1em; }
+    .preset-active { border: 2px solid #2a4d8f; background: #eaf1ff; }
   </style>
 </head>
 <body>
   <h2>MIDI Biodata Configurator</h2>
   <button id="connectBtn">Connect Serial</button>
-  <form id="configForm">
-    <label>
-      Threshold:
-      <input type="number" step="0.01" id="threshold" min="1.61" max="3.71" required>
-    </label>
-    <label>
-      Scale:
-      <select id="scale" required></select>
-    </label>
-    <label>
-      MIDI Channel:
-      <input type="number" id="channel" min="1" max="16" required>
-    </label>
-    <label>
-      Max Brightness:
-      <input type="number" id="maxbrightness" min="0" max="255" required>
-    </label>
-    <label>
-      Root Note:
-      <select id="rootnote"></select>
-    </label>
-    <label>
-      BPM:
-      <input type="number" id="bpm" min="20" max="300" value="120" required>
-    </label>
-    <label>
-      Bars per Chord:
-      <input type="number" id="barsperchord" min="1" max="16" value="4" required>
-    </label>
-    <label>
-      Drone Enabled:
-      <input type="checkbox" id="droneEnabled">
-    </label>
-    <label>
-      Note Min (A0=21):
-      <input type="number" id="noteMin" min="0" max="127" required>
-    </label>
-    <label>
-      Note Max (C8=108):
-      <input type="number" id="noteMax" min="0" max="127" required>
-    </label>
-    <label>
-      Velocity Min:
-      <input type="number" id="velocityMin" min="1" max="127" required>
-    </label>
-    <label>
-      Velocity Max:
-      <input type="number" id="velocityMax" min="1" max="127" required>
-    </label>
-    <label>
-      BLE MIDI Enabled:
-      <input type="checkbox" id="bleEnabled">
-    </label>
-    <label>
-      CC Messaging Enabled:
-      <input type="checkbox" id="ccEnable">
-    </label>
-    <button type="button" id="readBtn">Read All</button>
-    <button type="submit">Save All</button>
-  </form>
+  <div class="section">
+    <h3 class="section-title">Global Settings</h3>
+    <form id="globalForm">
+      <label>Threshold: <input type="number" step="0.01" id="threshold" min="1.61" max="3.71" required></label>
+      <label>MIDI Channel: <input type="number" id="channel" min="1" max="16" required></label>
+      <label>Max Brightness: <input type="number" id="maxbrightness" min="0" max="255" required></label>
+      <label>BPM: <input type="number" id="bpm" min="20" max="300" value="120" required></label>
+      <label>Bars per Chord: <input type="number" id="barsperchord" min="1" max="16" value="4" required></label>
+      <label>Drone Enabled: <input type="checkbox" id="droneEnabled"></label>
+      <label>Note Min (A0=21): <input type="number" id="noteMin" min="0" max="127" required></label>
+      <label>Note Max (C8=108): <input type="number" id="noteMax" min="0" max="127" required></label>
+      <label>Velocity Min: <input type="number" id="velocityMin" min="1" max="127" required></label>
+      <label>Velocity Max: <input type="number" id="velocityMax" min="1" max="127" required></label>
+      <label>BLE MIDI Enabled: <input type="checkbox" id="bleEnabled"></label>
+      <label>CC Messaging Enabled: <input type="checkbox" id="ccEnable"></label>
+      <div class="btn-row">
+        <button type="button" id="readBtn">Read All</button>
+        <button type="submit">Save All</button>
+      </div>
+    </form>
+  </div>
+  <div class="section">
+    <h3 class="section-title">Presets</h3>
+    <div class="preset-list" id="presetList"></div>
+  </div>
   <h3>Serial Log</h3>
   <textarea id="log" readonly></textarea>
   <script>
@@ -89,28 +76,95 @@
       "Locrian",
       "Raga Bhairav"
     ];
-    const scaleSelect = document.getElementById('scale');
-    for (let i = 0; i < scaleNames.length; ++i) {
-      const opt = document.createElement('option');
-      opt.value = i;
-      opt.textContent = `${i} - ${scaleNames[i]}`;
-      scaleSelect.appendChild(opt);
-    }
-
     // MIDI note names for dropdown
     const noteNames = [
       "C", "C♯/D♭", "D", "D♯/E♭", "E", "F", "F♯/G♭", "G", "G♯/A♭", "A", "A♯/B♭", "B"
     ];
-    const rootSelect = document.getElementById('rootnote');
-    for (let i = 0; i < 128; ++i) {
-      const octave = Math.floor(i / 12) - 1;
-      const name = noteNames[i % 12] + octave;
-      const opt = document.createElement('option');
-      opt.value = i;
-      opt.textContent = `${i} - ${name}`;
-      rootSelect.appendChild(opt);
+
+    // --- Preset UI generation ---
+    const presetList = document.getElementById('presetList');
+    const NUM_PRESETS = 8;
+    let presetData = Array(NUM_PRESETS).fill().map(() => ({
+      scale: 0, rootNote: 0, midiCCTrigger: 20, midiPCTrigger: 0
+    }));
+    let activePreset = 0;
+
+    function createPresetCard(idx) {
+      const card = document.createElement('div');
+      card.className = 'preset-card';
+      card.id = `preset-card-${idx}`;
+      if (idx === activePreset) card.classList.add('preset-active');
+      card.innerHTML = `
+        <div class="preset-title">Preset ${idx}</div>
+        <div class="preset-fields">
+          <label>Scale:
+            <select id="preset-scale-${idx}"></select>
+          </label>
+          <label>Root Note:
+            <select id="preset-root-${idx}"></select>
+          </label>
+          <label>MIDI CC Trigger:
+            <input type="number" id="preset-cc-${idx}" min="0" max="127">
+          </label>
+          <label>MIDI PC Trigger:
+            <input type="number" id="preset-pc-${idx}" min="0" max="127">
+          </label>
+        </div>
+        <div class="preset-controls">
+          <button type="button" id="preset-activate-${idx}">Activate</button>
+          <button type="button" id="preset-save-${idx}">Save</button>
+        </div>
+      `;
+      // Populate scale dropdown
+      const scaleSel = card.querySelector(`#preset-scale-${idx}`);
+      scaleNames.forEach((name, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = `${i} - ${name}`;
+        scaleSel.appendChild(opt);
+      });
+      // Populate root note dropdown
+      const rootSel = card.querySelector(`#preset-root-${idx}`);
+      for (let i = 0; i < 128; ++i) {
+        const octave = Math.floor(i / 12) - 1;
+        const name = noteNames[i % 12] + octave;
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = `${i} - ${name}`;
+        rootSel.appendChild(opt);
+      }
+      // Set initial values
+      scaleSel.value = presetData[idx].scale;
+      rootSel.value = presetData[idx].rootNote;
+      card.querySelector(`#preset-cc-${idx}`).value = presetData[idx].midiCCTrigger;
+      card.querySelector(`#preset-pc-${idx}`).value = presetData[idx].midiPCTrigger;
+      // Activate button
+      card.querySelector(`#preset-activate-${idx}`).onclick = () => {
+        activePreset = idx;
+        sendJson({ cmd: "activate_preset", index: idx });
+        updatePresetUI();
+      };
+      // Save button
+      card.querySelector(`#preset-save-${idx}`).onclick = () => {
+        presetData[idx].scale = parseInt(scaleSel.value, 10);
+        presetData[idx].rootNote = parseInt(rootSel.value, 10);
+        presetData[idx].midiCCTrigger = parseInt(card.querySelector(`#preset-cc-${idx}`).value, 10);
+        presetData[idx].midiPCTrigger = parseInt(card.querySelector(`#preset-pc-${idx}`).value, 10);
+        sendPresets();
+      };
+      return card;
     }
 
+    function updatePresetUI() {
+      presetList.innerHTML = "";
+      for (let i = 0; i < NUM_PRESETS; ++i) {
+        const card = createPresetCard(i);
+        if (i === activePreset) card.classList.add('preset-active');
+        presetList.appendChild(card);
+      }
+    }
+
+    // --- Serial/Global logic ---
     let port, reader, writer;
     const logArea = document.getElementById('log');
     function log(msg, dir = "") {
@@ -145,7 +199,6 @@
             for (const line of lines) {
               log(line.trim(), "RX");
               try {
-                // Extract first JSON object from the line
                 const jsonStart = line.indexOf('{');
                 const jsonEnd = line.lastIndexOf('}');
                 if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
@@ -164,12 +217,11 @@
     }
 
     function updateForm(obj) {
+      // Update global settings
       if (typeof obj !== "object") return;
       if (obj.thr !== undefined) document.getElementById('threshold').value = obj.thr;
-      if (obj.scale !== undefined) document.getElementById('scale').value = obj.scale;
       if (obj.chn !== undefined) document.getElementById('channel').value = obj.chn;
       if (obj.maxb !== undefined) document.getElementById('maxbrightness').value = obj.maxb;
-      if (obj.rnote !== undefined) document.getElementById('rootnote').value = obj.rnote;
       if (obj.bpm !== undefined) document.getElementById('bpm').value = obj.bpm;
       if (obj.barperch !== undefined) document.getElementById('barsperchord').value = obj.barperch;
       if (obj.drone !== undefined) document.getElementById('droneEnabled').checked = !!obj.drone;
@@ -179,6 +231,16 @@
       if (obj.velocityMax !== undefined) document.getElementById('velocityMax').value = obj.velocityMax;
       if (obj.ccEnable !== undefined) document.getElementById('ccEnable').checked = !!obj.ccEnable;
       if (obj.bleEnabled !== undefined) document.getElementById('bleEnabled').checked = !!obj.bleEnabled;
+      // Update presets if present
+      if (obj.presets && Array.isArray(obj.presets)) {
+        presetData = obj.presets.map((p, i) => ({
+          scale: p.scale ?? 0,
+          rootNote: p.rootNote ?? 0,
+          midiCCTrigger: p.midiCCTrigger ?? (20 + i),
+          midiPCTrigger: p.midiPCTrigger ?? i
+        }));
+        updatePresetUI();
+      }
     }
 
     async function sendJson(obj) {
@@ -191,6 +253,13 @@
       log(json.trim(), "TX");
     }
 
+    function sendPresets() {
+      sendJson({
+        cmd: "save_presets",
+        presets: presetData
+      });
+    }
+
     document.getElementById('connectBtn').onclick = connectSerial;
 
     document.getElementById('readBtn').onclick = async () => {
@@ -201,13 +270,28 @@
       await sendJson({ cmd: "blemidi", enable: e.target.checked });
     };
 
-    document.getElementById('configForm').onsubmit = async (e) => {
+    // Collect current values from all preset cards into presetData
+    function collectPresetDataFromUI() {
+      for (let i = 0; i < NUM_PRESETS; ++i) {
+        const scaleSel = document.getElementById(`preset-scale-${i}`);
+        const rootSel = document.getElementById(`preset-root-${i}`);
+        const ccInput = document.getElementById(`preset-cc-${i}`);
+        const pcInput = document.getElementById(`preset-pc-${i}`);
+        if (scaleSel && rootSel && ccInput && pcInput) {
+          presetData[i].scale = parseInt(scaleSel.value, 10);
+          presetData[i].rootNote = parseInt(rootSel.value, 10);
+          presetData[i].midiCCTrigger = parseInt(ccInput.value, 10);
+          presetData[i].midiPCTrigger = parseInt(pcInput.value, 10);
+        }
+      }
+    }
+
+    document.getElementById('globalForm').onsubmit = async (e) => {
       e.preventDefault();
+      collectPresetDataFromUI();
       const thr = parseFloat(document.getElementById('threshold').value);
-      const scale = parseInt(document.getElementById('scale').value, 10);
       const chn = parseInt(document.getElementById('channel').value, 10);
       const maxb = parseInt(document.getElementById('maxbrightness').value, 10);
-      const rnote = parseInt(document.getElementById('rootnote').value, 10);
       const bpm = parseInt(document.getElementById('bpm').value, 10);
       const barperch = parseInt(document.getElementById('barsperchord').value, 10);
       const noteMin = parseInt(document.getElementById('noteMin').value, 10);
@@ -217,12 +301,10 @@
       const ccEnable = document.getElementById('ccEnable').checked ? 1 : 0;
       const bleEnabled = document.getElementById('bleEnabled').checked ? 1 : 0;
       await sendJson({
-        cmd: "save",
+        cmd: "save_all",
         thr,
-        scale,
         chn,
         maxb,
-        rnote,
         bpm,
         barperch,
         drone: document.getElementById('droneEnabled').checked ? 1 : 0,
@@ -231,9 +313,13 @@
         velocityMin,
         velocityMax,
         ccEnable,
-        bleEnabled
+        bleEnabled,
+        presets: presetData
       });
     };
+
+    // Initial UI render
+    updatePresetUI();
   </script>
 </body>
 </html>

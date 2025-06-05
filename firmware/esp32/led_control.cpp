@@ -2,7 +2,7 @@
 
 void rampUp(int ledPin, int value, int time) {
   LEDFader *led = &leds[ledPin];
-  led->fade(map(value, 0, 255, 0, maxBrightness), time);
+  led->fade(map(value, 0, 255, 0, globalSettings.maxBrightness), time);
 }
 
 void rampDown(int ledPin, int value, int time) {

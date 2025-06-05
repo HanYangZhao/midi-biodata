@@ -48,6 +48,7 @@ void setup() {
 
   printGlobals();
   MIDI.begin();
+  setupMidiPresetHandlers();
   controlMessage.value = 0;
   if (noteLEDs) bootLightshow();
   attachInterrupt(interruptPin, sample, RISING);
@@ -71,6 +72,10 @@ void loop() {
   checkLED();
 
   midiChordTick();
+
+  // Process incoming MIDI messages (required for callbacks)
+  MIDI.read();
+  usbMIDI.read();
 
   // --- Only process JSON commands via web_serial_config ---
   processWebSerialConfig();

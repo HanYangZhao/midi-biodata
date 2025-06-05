@@ -2,8 +2,7 @@
 #include "midi_handling.h"
 
 #if BLE_MIDI_SUPPORTED
-// BLE MIDI enable flag
-uint8_t bleEnabled = 0;
+// BLE MIDI enable flag is now in globalSettings.bleEnabled
 #endif
 
 // Define the USB MIDI object
@@ -13,13 +12,29 @@ Adafruit_USBD_MIDI usb_midi;
 MIDI_CREATE_INSTANCE(Adafruit_USBD_MIDI, usb_midi, usbMIDI);
 // Instantiate the MIDI object on Serial1 for ESP32
 MIDI_CREATE_INSTANCE(HardwareSerial, Serial1, MIDI);
+void handleControlChange(byte channel, byte control, byte value) {
+  trySwitchPresetByCC(control);
+}
+
 // Forward declaration
 void triggerChord();
 
 #if BLE_MIDI_SUPPORTED
+// BLE MIDI Control Change callback
+void bleControlChangeCallback(uint8_t channel, uint8_t controller, uint8_t value, uint16_t timestamp) {
+  trySwitchPresetByCC(controller);
+}
+
+// BLE MIDI Program Change callback
+void bleProgramChangeCallback(uint8_t channel, uint8_t program, uint16_t timestamp) {
+  trySwitchPresetByPC(program);
+}
+
 // BLE MIDI initialization and loop
 void bleMidiInit() {
     BLEMidiClient.begin("Midi client");
+    BLEMidiClient.setControlChangeCallback(bleControlChangeCallback);
+    BLEMidiClient.setProgramChangeCallback(bleProgramChangeCallback);
 }
 
 void bleMidiLoop() {
@@ -39,6 +54,17 @@ void bleMidiLoop() {
 #else
 // BLE MIDI not supported: do not define stubs here, only in the header
 #endif
+
+void handleProgramChange(byte channel, byte program) {
+  trySwitchPresetByPC(program);
+}
+
+void setupMidiPresetHandlers() {
+  MIDI.setHandleControlChange(handleControlChange);
+  usbMIDI.setHandleControlChange(handleControlChange);
+  MIDI.setHandleProgramChange(handleProgramChange);
+  usbMIDI.setHandleProgramChange(handleProgramChange);
+}
 
 void debugPrintNote(int value, int velocity, int notechannel) {
   Serial.print("Note : value=");
@@ -68,24 +94,50 @@ void setNote(int value, int velocity, long duration, int notechannel, bool debug
         MIDI.sendNoteOn(value, velocity, notechannel);
         usbMIDI.sendNoteOn(value, velocity, notechannel);
 #if BLE_MIDI_SUPPORTED
-        if (bleEnabled && BLEMidiClient.isConnected()) {
+        if (globalSettings.bleEnabled && BLEMidiClient.isConnected()) {
           BLEMidiClient.noteOn(notechannel, value, velocity);
         }
 #endif
       } else {
-        MIDI.sendNoteOn(value, velocity, channel);
-        usbMIDI.sendNoteOn(value, velocity, channel);
+        MIDI.sendNoteOn(value, velocity, globalSettings.channel);
+        usbMIDI.sendNoteOn(value, velocity, globalSettings.channel);
 #if BLE_MIDI_SUPPORTED
-        if (bleEnabled && BLEMidiClient.isConnected()) {
-          BLEMidiClient.noteOn(channel, value, velocity);
+        if (globalSettings.bleEnabled && BLEMidiClient.isConnected()) {
+          BLEMidiClient.noteOn(globalSettings.channel, value, velocity);
         }
 #endif
       }
 
       if (noteLEDs == 1) {
-        rampUp(i, maxBrightness, duration);
+        rampUp(i, globalSettings.maxBrightness, duration);
       } else if (noteLEDs == 2) {
-        rampUp(i + 1, maxBrightness, duration);
+        rampUp(i + 1, globalSettings.maxBrightness, duration);
+      }
+      break;
+    }
+  }
+}
+
+void trySwitchPresetByCC(uint8_t ccNum) {
+  for (int i = 0; i < 8; ++i) {
+    if (presets[i].midiCCTrigger == ccNum) {
+      if (activePreset != i) {
+        activePreset = i;
+        Serial.print("[PRESET] Switched to preset ");
+        Serial.println(i + 1);
+      }
+      break;
+    }
+  }
+}
+
+void trySwitchPresetByPC(uint8_t pcNum) {
+  for (int i = 0; i < 8; ++i) {
+    if (presets[i].midiPCTrigger == pcNum) {
+      if (activePreset != i) {
+        activePreset = i;
+        Serial.print("[PRESET] Switched to preset ");
+        Serial.println(i + 1);
       }
       break;
     }
@@ -93,21 +145,24 @@ void setNote(int value, int velocity, long duration, int notechannel, bool debug
 }
 
 void setControl(int type, int value, int velocity, long duration) {
+  // Check for preset switch by CC
+  trySwitchPresetByCC(type);
+
   controlMessage.type = type;
   controlMessage.value = value;
   controlMessage.velocity = velocity;
   controlMessage.period = duration;
   controlMessage.duration = currentMillis + duration;
   // Direct CC logic: send CC immediately, schedule off
-  if (ccEnable == 1) {
+  if (globalSettings.ccEnable == 1) {
     Serial.print("[MIDI CC] type=");
     Serial.print(controlMessage.type);
     Serial.print(" value=");
     Serial.print(value);
     Serial.print(" channel=");
-    Serial.println(channel);
-    MIDI.sendControlChange(type, velocity, channel);
-    usbMIDI.sendControlChange(type, velocity, channel);
+    Serial.println(globalSettings.channel);
+    MIDI.sendControlChange(type, velocity, globalSettings.channel);
+    usbMIDI.sendControlChange(type, velocity, globalSettings.channel);
     controlMessage.value = velocity; // Track last sent value
   }
 }
@@ -126,15 +181,15 @@ void checkControl() {
   }
   // Direct CC logic: turn off after duration
   static int lastSentValue = -1;
-  if (ccEnable == 1) {
+  if (globalSettings.ccEnable == 1) {
     if (controlMessage.value != 0 && currentMillis > controlMessage.duration) {
       Serial.print("[MIDI CC] type=");
       Serial.print(controlMessage.type);
       Serial.print(" value=0 (auto reset)");
       Serial.print(" channel=");
-      Serial.println(channel);
-      MIDI.sendControlChange(controlMessage.type, 0, channel);
-      usbMIDI.sendControlChange(controlMessage.type, 0, channel);
+      Serial.println(globalSettings.channel);
+      MIDI.sendControlChange(controlMessage.type, 0, globalSettings.channel);
+      usbMIDI.sendControlChange(controlMessage.type, 0, globalSettings.channel);
       controlMessage.value = 0;
       lastSentValue = 0;
     }
@@ -156,11 +211,11 @@ void checkNote() {
           }
 #endif
         } else {
-          MIDI.sendNoteOff(noteArray[i].value, 0, channel);
-          usbMIDI.sendNoteOff(noteArray[i].value, 0, channel);
+          MIDI.sendNoteOff(noteArray[i].value, 0, globalSettings.channel);
+          usbMIDI.sendNoteOff(noteArray[i].value, 0, globalSettings.channel);
 #if BLE_MIDI_SUPPORTED
-          if (bleEnabled && BLEMidiClient.isConnected()) {
-            BLEMidiClient.noteOff(channel, noteArray[i].value, 0);
+          if (globalSettings.bleEnabled && BLEMidiClient.isConnected()) {
+            BLEMidiClient.noteOff(globalSettings.channel, noteArray[i].value, 0);
           }
 #endif
         }
@@ -175,8 +230,8 @@ void checkNote() {
 void MIDIpanic() {
   for (byte i = 1; i < 128; i++) {
     delay(1);
-    MIDI.sendNoteOff(i, 0, channel);
-    usbMIDI.sendNoteOff(i, 0, channel);
+    MIDI.sendNoteOff(i, 0, globalSettings.channel);
+    usbMIDI.sendNoteOff(i, 0, globalSettings.channel);
     if (QY8) {
       for (byte k = 1; k < 5; k++) {
         delay(1);
@@ -190,6 +245,12 @@ void MIDIpanic() {
 void midiSerial(int type, int channel, int data1, int data2) {
   data1 &= 0x7F;
   data2 &= 0x7F;
+
+  // Check for preset switch by PC (Program Change)
+  if ((type & 0xF0) == 0xC0) { // 0xC0 = Program Change
+    trySwitchPresetByPC(data1);
+  }
+
   byte statusbyte = (type | ((channel - 1) & 0x0F));
 #ifndef DEBUG
   Serial.write(statusbyte);
@@ -209,57 +270,57 @@ static int barsElapsed = 0;
 void midiChordTick() {
   static int prevDroneEnabled = 1;
   int triad[3] = {
-    root + scale[currScale][1],
-    root + scale[currScale][3],
-    root + scale[currScale][5]
+    presets[activePreset].rootNote + scale[presets[activePreset].scale][1],
+    presets[activePreset].rootNote + scale[presets[activePreset].scale][3],
+    presets[activePreset].rootNote + scale[presets[activePreset].scale][5]
   };
 
-  if (!droneEnabled) {
+  if (!globalSettings.droneEnabled) {
     if (prevDroneEnabled) {
       // Drone was just disabled, turn off notes
       for (int i = 0; i < 3; i++) {
-        MIDI.sendNoteOff(triad[i], 0, channel);
-        usbMIDI.sendNoteOff(triad[i], 0, channel);
+        MIDI.sendNoteOff(triad[i], 0, globalSettings.channel);
+        usbMIDI.sendNoteOff(triad[i], 0, globalSettings.channel);
       }
     }
-    prevDroneEnabled = droneEnabled;
+    prevDroneEnabled = globalSettings.droneEnabled;
     return;
   }
 
   // Calculate ms per bar: (60,000 ms/min) / bpm * 4 beats/bar
-  unsigned long msPerBar = (unsigned long)(60000.0 / bpm * 4);
+  unsigned long msPerBar = (unsigned long)(60000.0 / globalSettings.bpm * 4);
   if (currentMillis - lastChordMillis >= msPerBar) {
     lastChordMillis += msPerBar;
     barsElapsed++;
-    if (barsElapsed >= barperch) {
+    if (barsElapsed >= globalSettings.barperch) {
       barsElapsed = 0;
       triggerChord();
     }
   }
-  prevDroneEnabled = droneEnabled;
+  prevDroneEnabled = globalSettings.droneEnabled;
 }
 
 void triggerChord() {
   // Triad drone: root, 3rd, 5th of the current scale
   // The root note is played one octave below
   int triad[3] = {
-    (root + scale[currScale][1]) - 12, // root one octave down
-    root + scale[currScale][3],
-    root + scale[currScale][5]
+    (presets[activePreset].rootNote + scale[presets[activePreset].scale][1]) - 12, // root one octave down
+    presets[activePreset].rootNote + scale[presets[activePreset].scale][3],
+    presets[activePreset].rootNote + scale[presets[activePreset].scale][5]
   };
 
   // Duration for drone = X bars
-  unsigned long msPerBar = (unsigned long)(60000.0 / bpm * 4);
-  long chordDuration = msPerBar * barperch;
+  unsigned long msPerBar = (unsigned long)(60000.0 / globalSettings.bpm * 4);
+  long chordDuration = msPerBar * globalSettings.barperch;
 
   // Send NoteOff for all triad notes (to avoid overlap)
   for (int i = 0; i < 3; i++) {
-    MIDI.sendNoteOff(triad[i], 0, channel);
-    usbMIDI.sendNoteOff(triad[i], 0, channel);
+    MIDI.sendNoteOff(triad[i], 0, globalSettings.channel);
+    usbMIDI.sendNoteOff(triad[i], 0, globalSettings.channel);
   }
 
   // Send chord notes via MIDI
   for (int i = 0; i < 3; i++) {
-    setNote(triad[i], 40, chordDuration, channel, false);
+    setNote(triad[i], 40, chordDuration, globalSettings.channel, false);
   }
 }

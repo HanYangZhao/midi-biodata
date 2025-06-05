@@ -30,15 +30,34 @@ const int scaleLen = 13; // maximum scale length plus 1 for 'used length'
 // Scale arrays
 extern int scale[scaleCount][scaleLen];
 
-// Global variables
-extern uint16_t currScale;
-extern uint16_t maxBrightness;
-extern uint16_t channel;
-extern float throld;
-extern float thrMin;
-extern float thrMax;
-extern uint8_t root;
+typedef struct {
+  uint16_t channel;
+  float threshold;
+  int droneEnabled;
+  int bpm;
+  int barperch;
+  uint8_t noteMin;
+  uint8_t noteMax;
+  uint8_t velocityMin;
+  uint8_t velocityMax;
+  uint8_t ccMessagingEnabled;
+  uint16_t maxBrightness;
+  uint8_t bleEnabled;
+  uint8_t ccEnable;
+} GlobalSettings;
 
+typedef struct {
+  uint8_t scale;           // Index of the scale to use for this preset (0 = Chromatic, 1 = Ionian, etc.)
+  uint8_t rootNote;        // MIDI note number for the root note of the scale (0 = C, 1 = C#, ..., 11 = B)
+  uint8_t midiCCTrigger;   // MIDI Control Change (CC) number that triggers this preset (0-127)
+  uint8_t midiPCTrigger;   // MIDI Program Change (PC) number that triggers this preset (0-127)
+} PresetSettings;
+
+extern GlobalSettings globalSettings;
+extern PresetSettings presets[8];
+extern int activePreset; // Index of the currently active preset (0-7)
+
+// Legacy and hardware variables
 extern const byte interruptPin;
 extern const byte knobPin;
 extern uint16_t pulseRate;
@@ -48,16 +67,9 @@ extern const byte analysize;
 
 extern const byte polyphony;
 
-extern uint8_t noteMin;
-extern uint8_t noteMax;
-extern uint8_t velocityMin;
-extern uint8_t velocityMax;
 extern byte QY8;
 extern byte controlNumber;
 extern byte controlVoltage;
-
-extern uint8_t ccEnable;
-extern uint8_t bleEnabled;
 
 extern int value;
 

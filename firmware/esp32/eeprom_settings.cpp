@@ -8,22 +8,32 @@ Preferences prefs;
 void readSettings() {
   prefs.begin("midi-bio", true); // read-only
 
-  currScale = prefs.getUShort("currScale", 1);
-  maxBrightness = prefs.getUShort("maxBrightness", 255);
-  channel = prefs.getUShort("channel", 1);
-  throld = prefs.getFloat("throld", 2.3f);
-  root = prefs.getUShort("root", 60);
-  droneEnabled = prefs.getUShort("droneEnabled", 0);
-  bpm = prefs.getUShort("bpm", 120);
-  barperch = prefs.getUShort("barperch", 1);
-  noteMin = prefs.getUChar("noteMin", 21);
-  noteMax = prefs.getUChar("noteMax", 108);
-  velocityMin = prefs.getUChar("velocityMin", 30);
-  velocityMax = prefs.getUChar("velocityMax", 127);
+  globalSettings.channel = prefs.getUShort("channel", 1);
+  globalSettings.threshold = prefs.getFloat("threshold", 2.3f);
+  globalSettings.droneEnabled = prefs.getUShort("droneEnabled", 0);
+  globalSettings.bpm = prefs.getUShort("bpm", 120);
+  globalSettings.barperch = prefs.getUShort("barperch", 1);
+  globalSettings.noteMin = prefs.getUChar("noteMin", 21);
+  globalSettings.noteMax = prefs.getUChar("noteMax", 108);
+  globalSettings.velocityMin = prefs.getUChar("velocityMin", 30);
+  globalSettings.velocityMax = prefs.getUChar("velocityMax", 127);
+  globalSettings.ccMessagingEnabled = prefs.getUChar("ccMessagingEnabled", 0);
+  globalSettings.maxBrightness = prefs.getUShort("maxBrightness", 190);
+  globalSettings.bleEnabled = prefs.getUChar("bleEnabled", 0);
+  globalSettings.ccEnable = prefs.getUChar("ccEnable", 0);
 
-  // Read ccEnable as int
-  ccEnable = prefs.getUChar("ccEnable", 0);
-  bleEnabled = prefs.getUChar("bleEnabled", 0);
+  // Load presets
+  for (int i = 0; i < 8; ++i) {
+    char key[32];
+    snprintf(key, sizeof(key), "preset%d_scale", i);
+    presets[i].scale = prefs.getUChar(key, i);
+    snprintf(key, sizeof(key), "preset%d_root", i);
+    presets[i].rootNote = prefs.getUChar(key, 0);
+    snprintf(key, sizeof(key), "preset%d_cc", i);
+    presets[i].midiCCTrigger = prefs.getUChar(key, 20 + i);
+    snprintf(key, sizeof(key), "preset%d_pc", i);
+    presets[i].midiPCTrigger = prefs.getUChar(key, i);
+  }
 
   prefs.end();
 
@@ -34,20 +44,33 @@ void saveSettings() {
   printGlobals();
   prefs.begin("midi-bio", false); // read-write
 
-  prefs.putUShort("currScale", currScale);
-  prefs.putUShort("maxBrightness", maxBrightness);
-  prefs.putUShort("channel", channel);
-  prefs.putFloat("throld", throld);
-  prefs.putUShort("root", root);
-  prefs.putUShort("droneEnabled", droneEnabled);
-  prefs.putUShort("bpm", bpm);
-  prefs.putUShort("barperch", barperch);
-  prefs.putUChar("noteMin", noteMin);
-  prefs.putUChar("noteMax", noteMax);
-  prefs.putUChar("velocityMin", velocityMin);
-  prefs.putUChar("velocityMax", velocityMax);
-  prefs.putUChar("ccEnable", ccEnable);
-  prefs.putUChar("bleEnabled", bleEnabled);
+  prefs.putUShort("channel", globalSettings.channel);
+  prefs.putFloat("threshold", globalSettings.threshold);
+  prefs.putUShort("droneEnabled", globalSettings.droneEnabled);
+  prefs.putUShort("bpm", globalSettings.bpm);
+  prefs.putUShort("barperch", globalSettings.barperch);
+  prefs.putUChar("noteMin", globalSettings.noteMin);
+  prefs.putUChar("noteMax", globalSettings.noteMax);
+  prefs.putUChar("velocityMin", globalSettings.velocityMin);
+  prefs.putUChar("velocityMax", globalSettings.velocityMax);
+  prefs.putUChar("ccMessagingEnabled", globalSettings.ccMessagingEnabled);
+  prefs.putUShort("maxBrightness", globalSettings.maxBrightness);
+  prefs.putUChar("bleEnabled", globalSettings.bleEnabled);
+  prefs.putUChar("ccEnable", globalSettings.ccEnable);
+
+  // Save presets
+  for (int i = 0; i < 8; ++i) {
+    char key[32];
+    snprintf(key, sizeof(key), "preset%d_scale", i);
+    prefs.putUChar(key, presets[i].scale);
+    snprintf(key, sizeof(key), "preset%d_root", i);
+    prefs.putUChar(key, presets[i].rootNote);
+    snprintf(key, sizeof(key), "preset%d_cc", i);
+    prefs.putUChar(key, presets[i].midiCCTrigger);
+    snprintf(key, sizeof(key), "preset%d_pc", i);
+    prefs.putUChar(key, presets[i].midiPCTrigger);
+  }
+
   prefs.end();
 }
 
@@ -57,19 +80,25 @@ void initializeEEPROM() {
   prefs.clear();
   prefs.end();
   // Set all values to defaults and save
-  currScale = 1;
-  maxBrightness = 255;
-  channel = 1;
-  throld = 2.3f;
-  root = 60;
-  droneEnabled = 0;
-  bpm = 120;
-  barperch = 1;
-  noteMin = 21;
-  noteMax = 108;
-  velocityMin = 30;
-  velocityMax = 127;
-  ccEnable = 1;
-  bleEnabled = 0;
+  globalSettings.channel = 1;
+  globalSettings.threshold = 2.3f;
+  globalSettings.droneEnabled = 0;
+  globalSettings.bpm = 120;
+  globalSettings.barperch = 1;
+  globalSettings.noteMin = 21;
+  globalSettings.noteMax = 108;
+  globalSettings.velocityMin = 30;
+  globalSettings.velocityMax = 127;
+  globalSettings.ccMessagingEnabled = 0;
+  globalSettings.maxBrightness = 190;
+  globalSettings.bleEnabled = 0;
+  globalSettings.ccEnable = 0;
+
+  for (int i = 0; i < 8; ++i) {
+    presets[i].scale = i;
+    presets[i].rootNote = 0;
+    presets[i].midiCCTrigger = 20 + i;
+    presets[i].midiPCTrigger = i;
+  }
   saveSettings();
 }

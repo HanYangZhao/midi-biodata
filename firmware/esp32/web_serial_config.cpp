@@ -29,52 +29,97 @@ void processWebSerialConfig() {
             readSettings();
 
             doc.clear();
-            doc["thr"] = throld;
-            doc["scale"] = currScale;
-            doc["chn"] = channel;
-            doc["maxb"] = maxBrightness;
-            doc["rnote"] = root;
-            doc["bpm"] = bpm;
-            doc["barperch"] = barperch;
-            doc["drone"] = droneEnabled;
-            doc["noteMin"] = noteMin;
-            doc["noteMax"] = noteMax;
-            doc["velocityMin"] = velocityMin;
-            doc["velocityMax"] = velocityMax;
-            doc["ccEnable"] = ccEnable;
-            doc["bleEnabled"] = bleEnabled;
+            doc["thr"] = globalSettings.threshold;
+            doc["scale"] = presets[0].scale; // Default: preset 0
+            doc["chn"] = globalSettings.channel;
+            doc["maxb"] = globalSettings.maxBrightness;
+            doc["rnote"] = presets[0].rootNote; // Default: preset 0
+            doc["bpm"] = globalSettings.bpm;
+            doc["barperch"] = globalSettings.barperch;
+            doc["drone"] = globalSettings.droneEnabled;
+            doc["noteMin"] = globalSettings.noteMin;
+            doc["noteMax"] = globalSettings.noteMax;
+            doc["velocityMin"] = globalSettings.velocityMin;
+            doc["velocityMax"] = globalSettings.velocityMax;
+            doc["ccEnable"] = globalSettings.ccEnable;
+            doc["bleEnabled"] = globalSettings.bleEnabled;
+
+            // Add all presets to response
+            JsonArray arr = doc.createNestedArray("presets");
+            for (int i = 0; i < 8; ++i) {
+                JsonObject p = arr.createNestedObject();
+                p["scale"] = presets[i].scale;
+                p["rootNote"] = presets[i].rootNote;
+                p["midiCCTrigger"] = presets[i].midiCCTrigger;
+                p["midiPCTrigger"] = presets[i].midiPCTrigger;
+            }
 
             serializeJson(doc, Serial);
             Serial.println();
-        } else if (command == "save") {
-            // Update all global variables from JSON
-            throld = doc["thr"] | throld;
-            currScale = doc["scale"] | currScale;
-            channel = doc["chn"] | channel;
-            maxBrightness = doc["maxb"] | maxBrightness;
-            root = doc["rnote"] | root;
-            bpm = doc["bpm"] | bpm;
-            barperch = doc["barperch"] | barperch;
-            droneEnabled = doc["drone"] | droneEnabled;
-            noteMin = doc["noteMin"] | noteMin;
-            noteMax = doc["noteMax"] | noteMax;
-            velocityMin = doc["velocityMin"] | velocityMin;
-            velocityMax = doc["velocityMax"] | velocityMax;
-            ccEnable = doc["ccEnable"];
-#if defined(BLE_MIDI_SUPPORTED) && BLE_MIDI_SUPPORTED
-            bleEnabled = doc["bleEnabled"];
-#else
-            bleEnabled = doc["bleEnabled"];
-            if (bleEnabled) {
+        } else if (command == "save_all") {
+            // Save global settings and all presets
+            globalSettings.threshold = doc["thr"] | globalSettings.threshold;
+            globalSettings.channel = doc["chn"] | globalSettings.channel;
+            globalSettings.maxBrightness = doc["maxb"] | globalSettings.maxBrightness;
+            globalSettings.bpm = doc["bpm"] | globalSettings.bpm;
+            globalSettings.barperch = doc["barperch"] | globalSettings.barperch;
+            globalSettings.droneEnabled = doc["drone"] | globalSettings.droneEnabled;
+            globalSettings.noteMin = doc["noteMin"] | globalSettings.noteMin;
+            globalSettings.noteMax = doc["noteMax"] | globalSettings.noteMax;
+            globalSettings.velocityMin = doc["velocityMin"] | globalSettings.velocityMin;
+            globalSettings.velocityMax = doc["velocityMax"] | globalSettings.velocityMax;
+            globalSettings.ccEnable = doc["ccEnable"];
+    #if defined(BLE_MIDI_SUPPORTED) && BLE_MIDI_SUPPORTED
+            globalSettings.bleEnabled = doc["bleEnabled"];
+    #else
+            globalSettings.bleEnabled = doc["bleEnabled"];
+            if (globalSettings.bleEnabled) {
                 Serial.println("[ERROR] BLE not supported on this board. bleEnabled set to 0.");
-                bleEnabled = 0;
+                globalSettings.bleEnabled = 0;
             }
-#endif
-
-            // Save all settings using firmware's saveSettings (ensures ccEnable is persisted)
+    #endif
+            // Update all presets from JSON array
+            if (doc.containsKey("presets") && doc["presets"].is<JsonArray>()) {
+                JsonArray arr = doc["presets"].as<JsonArray>();
+                int count = arr.size() < 8 ? arr.size() : 8;
+                for (int i = 0; i < count; ++i) {
+                    JsonObject p = arr[i];
+                    presets[i].scale = p["scale"] | presets[i].scale;
+                    presets[i].rootNote = p["rootNote"] | presets[i].rootNote;
+                    presets[i].midiCCTrigger = p["midiCCTrigger"] | presets[i].midiCCTrigger;
+                    presets[i].midiPCTrigger = p["midiPCTrigger"] | presets[i].midiPCTrigger;
+                }
+            }
             saveSettings();
-
-            Serial.println("{\"status\":\"saved\"}");
+            Serial.println("{\"status\":\"all_saved\"}");
+        } else if (command == "save_presets") {
+            // Update all presets from JSON array
+            if (doc.containsKey("presets") && doc["presets"].is<JsonArray>()) {
+                JsonArray arr = doc["presets"].as<JsonArray>();
+                int count = arr.size() < 8 ? arr.size() : 8;
+                for (int i = 0; i < count; ++i) {
+                    JsonObject p = arr[i];
+                    presets[i].scale = p["scale"] | presets[i].scale;
+                    presets[i].rootNote = p["rootNote"] | presets[i].rootNote;
+                    presets[i].midiCCTrigger = p["midiCCTrigger"] | presets[i].midiCCTrigger;
+                    presets[i].midiPCTrigger = p["midiPCTrigger"] | presets[i].midiPCTrigger;
+                }
+                saveSettings();
+                Serial.println("{\"status\":\"presets_saved\"}");
+            } else {
+                Serial.println("{\"status\":\"error\",\"error\":\"Invalid presets array\"}");
+            }
+        } else if (command == "activate_preset") {
+            // Set the active preset index from JSON
+            int idx = doc["index"] | 0;
+            if (idx >= 0 && idx < 8) {
+                activePreset = idx;
+                Serial.print("{\"status\":\"active_preset_set\",\"index\":");
+                Serial.print(idx);
+                Serial.println("}");
+            } else {
+                Serial.println("{\"status\":\"error\",\"error\":\"Invalid preset index\"}");
+            }
         } else {
             Serial.print("{\"status\":\"Unknown command\",\"command\":\"");
             Serial.print(command);

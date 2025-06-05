@@ -15,14 +15,28 @@ int scale[scaleCount][scaleLen] = {
   {7, 0, 1, 4, 5, 7, 8, 11},                  // Raga Bhairav (double harmonic major)
 };
 
-// Global variables
-uint16_t currScale = 0;
-uint16_t maxBrightness = 190;
-uint16_t channel = 1;
-float throld = 2.3;
-float thrMin = 1.61;
-float thrMax = 3.71;
-uint8_t root = 0;
+GlobalSettings globalSettings = {
+  .channel = 1,
+  .threshold = 2.3,
+  .droneEnabled = 0,
+  .bpm = 120,
+  .barperch = 1,
+  .noteMin = 21,
+  .noteMax = 108,
+  .velocityMin = 30,
+  .velocityMax = 127,
+  .ccMessagingEnabled = 0,
+  .maxBrightness = 190,
+  .bleEnabled = 0,
+  .ccEnable = 0
+};
+
+PresetSettings presets[8] = {
+  {0, 0, 20, 0}, {1, 0, 21, 1}, {2, 0, 22, 2}, {3, 0, 23, 3},
+  {4, 0, 24, 4}, {5, 0, 25, 5}, {6, 0, 26, 6}, {7, 0, 27, 7}
+};
+
+int activePreset = 0; // Default to preset 1
 
 const byte interruptPin = INTERRUPT_PIN;
 const byte knobPin = KNOB_PIN;
@@ -80,19 +94,25 @@ int droneEnabled = 0;
 
 void printGlobals() {
   Serial.println("---- EEPROM/Globals Debug ----");
-  Serial.print("currScale: "); Serial.println(currScale);
-  Serial.print("maxBrightness: "); Serial.println(maxBrightness);
-  Serial.print("channel: "); Serial.println(channel);
-  Serial.print("throld: "); Serial.println(throld);
-  Serial.print("root: "); Serial.println(root);
-  Serial.print("droneEnabled: "); Serial.println(droneEnabled);
-  Serial.print("bpm: "); Serial.println(bpm);
-  Serial.print("barperch: "); Serial.println(barperch);
-  Serial.print("noteMin: "); Serial.println(noteMin);
-  Serial.print("noteMax: "); Serial.println(noteMax);
-  Serial.print("velocityMin: "); Serial.println(velocityMin);
-  Serial.print("velocityMax: "); Serial.println(velocityMax);
-  Serial.print("ccEnable: "); Serial.println(ccEnable);
-  Serial.print("bleEnabled: "); Serial.println(bleEnabled);
+  Serial.print("channel: "); Serial.println(globalSettings.channel);
+  Serial.print("threshold: "); Serial.println(globalSettings.threshold);
+  Serial.print("droneEnabled: "); Serial.println(globalSettings.droneEnabled);
+  Serial.print("bpm: "); Serial.println(globalSettings.bpm);
+  Serial.print("barperch: "); Serial.println(globalSettings.barperch);
+  Serial.print("noteMin: "); Serial.println(globalSettings.noteMin);
+  Serial.print("noteMax: "); Serial.println(globalSettings.noteMax);
+  Serial.print("velocityMin: "); Serial.println(globalSettings.velocityMin);
+  Serial.print("velocityMax: "); Serial.println(globalSettings.velocityMax);
+  Serial.print("ccMessagingEnabled: "); Serial.println(globalSettings.ccMessagingEnabled);
+  Serial.print("maxBrightness: "); Serial.println(globalSettings.maxBrightness);
+  Serial.print("bleEnabled: "); Serial.println(globalSettings.bleEnabled);
+  Serial.print("ccEnable: "); Serial.println(globalSettings.ccEnable);
+  for (int i = 0; i < 8; ++i) {
+    Serial.print("Preset "); Serial.print(i); Serial.print(": scale=");
+    Serial.print(presets[i].scale); Serial.print(", rootNote=");
+    Serial.print(presets[i].rootNote); Serial.print(", midiCCTrigger=");
+    Serial.print(presets[i].midiCCTrigger); Serial.print(", midiPCTrigger=");
+    Serial.println(presets[i].midiPCTrigger);
+  }
   Serial.println("-----------------------------");
 }

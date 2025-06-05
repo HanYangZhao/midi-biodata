@@ -13,9 +13,7 @@
 #define BLE_MIDI_SUPPORTED 0
 #endif
 
-extern uint8_t bleEnabled;
-
-// Expose usb_midi and usbMIDI for use in other files
+ // Expose usb_midi and usbMIDI for use in other files
 extern Adafruit_USBD_MIDI usb_midi;
 extern midi::MidiInterface<midi::SerialMIDI<Adafruit_USBD_MIDI>> usbMIDI;
 extern MIDI_NAMESPACE::MidiInterface<MIDI_NAMESPACE::SerialMIDI<HardwareSerial>> MIDI;
@@ -29,6 +27,11 @@ void MIDIpanic();
 void midiSerial(int type, int channel, int data1, int data2);
 
 void midiChordTick();
+
+// Preset switching handlers
+void setupMidiPresetHandlers();
+void trySwitchPresetByCC(uint8_t ccNum);
+void trySwitchPresetByPC(uint8_t pcNum);
 
 #if BLE_MIDI_SUPPORTED
 void bleMidiInit();

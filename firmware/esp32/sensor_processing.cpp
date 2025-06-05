@@ -47,7 +47,7 @@ void analyzeSample() {
 
     delta = maxim - minim;
 
-    if (delta > (stdevi * throld)) {
+    if (delta > (stdevi * globalSettings.threshold)) {
       change = 1;
     }
 
@@ -57,13 +57,13 @@ void analyzeSample() {
       int notechannel = random(1, 5);
 
       // Velocity based on delta, mapped to velocityMin/velocityMax
-      uint8_t velocity = map(delta, 0, 1023, velocityMin, velocityMax);
-      if (velocity < velocityMin) velocity = velocityMin;
-      if (velocity > velocityMax) velocity = velocityMax;
+      uint8_t velocity = map(delta, 0, 1023, globalSettings.velocityMin, globalSettings.velocityMax);
+      if (velocity < globalSettings.velocityMin) velocity = globalSettings.velocityMin;
+      if (velocity > globalSettings.velocityMax) velocity = globalSettings.velocityMax;
 
       static uint8_t previousNotes[2] = {0xFF, 0xFF};
-      uint8_t setnote = map(averg % 127, 1, 127, noteMin, noteMax);
-      setnote = scaleNote_fast(setnote, root, currScale, previousNotes);
+      uint8_t setnote = map(averg % 127, 1, 127, globalSettings.noteMin, globalSettings.noteMax);
+      setnote = scaleNote_fast(setnote, presets[activePreset].rootNote, presets[activePreset].scale, previousNotes);
       previousNotes[1] = previousNotes[0];
       previousNotes[0] = setnote;
 
@@ -72,11 +72,11 @@ void analyzeSample() {
         setNote(setnote, velocity, dur, notechannel,true);
         noteSent = true;
       } else {
-        setNote(setnote, velocity, dur, channel,true);
+        setNote(setnote, velocity, dur, globalSettings.channel, true);
         noteSent = true;
       }
 
-      if (noteSent && ccEnable) {
+      if (noteSent && globalSettings.ccEnable) {
         int ccValue = map(delta, 0, 1023, 0, 127);
         setControl(controlNumber, ccValue, ccValue, dur);
       }
