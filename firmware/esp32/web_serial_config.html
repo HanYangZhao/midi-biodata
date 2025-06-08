@@ -176,10 +176,10 @@
         const noteVal = parseInt(card.querySelector(`#preset-note-${idx}`).value, 10);
         const minNote = parseInt(document.getElementById('noteMin').value, 10);
         const maxNote = parseInt(document.getElementById('noteMax').value, 10);
-        if (noteVal !== -1 && !(noteVal < minNote || noteVal > maxNote)) {
-          alert(`MIDI Note Trigger must be -1 (disabled), less than min note (${minNote}), or greater than max note (${maxNote}).`);
-          return;
-        }
+        // if (noteVal !== -1 && !(noteVal < minNote || noteVal > maxNote)) {
+        //   alert(`MIDI Note Trigger must be -1 (disabled), less than min note (${minNote}), or greater than max note (${maxNote}).`);
+        //   return;
+        // }
         presetData[idx].midiNoteTrigger = noteVal;
         presetData[idx].droneChordQ = parseInt(card.querySelector(`#preset-quality-${idx}`).value, 10);
         // Only send this preset for save
@@ -212,7 +212,7 @@
     async function connectSerial() {
       try {
         port = await navigator.serial.requestPort();
-        await port.open({ baudRate: 31250 });
+        await port.open({ baudRate: 115200 });
         writer = port.writable.getWriter();
         reader = port.readable.getReader();
         log("Serial connected", "INFO");

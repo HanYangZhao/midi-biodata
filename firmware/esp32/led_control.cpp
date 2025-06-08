@@ -47,9 +47,9 @@ void displayChannel(int channel) {
 
 void blinkLED(int num, int milis) {
   for (int i = 0; i < num; i++) {
-    digitalWrite(10, HIGH);
+    digitalWrite(LED_PIN_1, HIGH);
     delay(milis);
-    digitalWrite(10, LOW);
+    digitalWrite(LED_PIN_1, LOW);
     if (i != num - 1) {
       delay(milis);
     }

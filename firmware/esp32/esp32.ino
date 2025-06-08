@@ -29,7 +29,7 @@ void setup() {
 
   randomSeed(analogRead(0));
 
-  Serial.begin(31250);
+  Serial.begin(115200);
   Serial1.begin(31250, SERIAL_8N1, MIDI_SERIAL1_RX_PIN, MIDI_SERIAL1_TX_PIN);
 
   // Factory reset: uncomment the next line, upload, then comment again and re-upload

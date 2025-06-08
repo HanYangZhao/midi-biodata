@@ -214,10 +214,10 @@ void trySwitchPresetByCC(uint8_t ccNum) {
         Serial.print("{\"status\":\"active_preset_set\",\"index\":");
         Serial.print(i);
         Serial.println("}");
-        // In freeDrone mode, change drone notes immediately
-        if (globalSettings.droneEnabled && globalSettings.droneMode == 0) {
-          triggerChordFreeDrone();
-        }
+      }
+      // In freeDrone mode, change drone notes immediately
+      if (globalSettings.droneEnabled && globalSettings.droneMode == 0) {
+        triggerChordFreeDrone();
       }
       break;
     }
@@ -232,10 +232,10 @@ void trySwitchPresetByPC(uint8_t pcNum) {
         activePreset = i;
         Serial.print("[PRESET] Switched to preset ");
         Serial.println(i + 1);
-        // In freeDrone mode, change drone notes immediately
-        if (globalSettings.droneEnabled && globalSettings.droneMode == 0) {
-          triggerChordFreeDrone();
-        }
+      }
+      // In freeDrone mode, change drone notes immediately
+      if (globalSettings.droneEnabled && globalSettings.droneMode == 0) {
+        triggerChordFreeDrone();
       }
       break;
     }
@@ -256,9 +256,9 @@ void trySwitchPresetByNote(uint8_t noteNum) {
         Serial.print("{\"status\":\"active_preset_set\",\"index\":");
         Serial.print(i);
         Serial.println("}");
-        if (globalSettings.droneEnabled && globalSettings.droneMode == 0) {
-          triggerChordFreeDrone();
-        }
+      }
+      if (globalSettings.droneEnabled && globalSettings.droneMode == 0) {
+        triggerChordFreeDrone();
       }
       break;
     }
