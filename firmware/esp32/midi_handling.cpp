@@ -68,12 +68,16 @@ void handleMidiClock() {
 #if BLE_MIDI_SUPPORTED
 // BLE MIDI Control Change callback
 void bleControlChangeCallback(uint8_t channel, uint8_t controller, uint8_t value, uint16_t timestamp) {
-  trySwitchPresetByCC(controller);
+  if (channel == globalSettings.channnel ){
+    trySwitchPresetByCC(controller);
+  }
 }
 
 // BLE MIDI Program Change callback
 void bleProgramChangeCallback(uint8_t channel, uint8_t program, uint16_t timestamp) {
-  trySwitchPresetByPC(program);
+  if (channel == globalSettings.channnel ){
+    trySwitchPresetByPC(program);
+  }
 }
 
 // BLE MIDI Start callback
@@ -114,8 +118,10 @@ void bleMidiLoop() {
 #endif
 
 void handleNoteOn(byte channel, byte note, byte velocity) {
-  trySwitchPresetByNote(note);
-  // Add any additional note-on logic here if needed
+  if (channel == globalSettings.channel ){
+    trySwitchPresetByNote(note);
+    // Add any additional note-on logic here if needed
+  }
 }
 
 // USB/Serial MIDI Start handler
