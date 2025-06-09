@@ -28,6 +28,7 @@ const int scaleLen = 13; // maximum scale length plus 1 for 'used length'
 
 // Scale arrays
 extern int scale[scaleCount][scaleLen];
+extern const char* FIRMWARE_VERSION;
 
 typedef struct {
   uint16_t channel;

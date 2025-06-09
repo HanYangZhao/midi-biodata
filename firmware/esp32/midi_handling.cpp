@@ -12,7 +12,9 @@ MIDI_CREATE_INSTANCE(Adafruit_USBD_MIDI, usb_midi, usbMIDI);
 // Instantiate the MIDI object on Serial1 for ESP32
 MIDI_CREATE_INSTANCE(HardwareSerial, Serial1, MIDI);
 void handleControlChange(byte channel, byte control, byte value) {
-  trySwitchPresetByCC(control);
+  if (channel == globalSettings.channel ){
+    trySwitchPresetByCC(control);
+  }
 }
 
 // Forward declaration
@@ -135,7 +137,9 @@ void handleUsbMidiClock() {
 }
 
 void handleProgramChange(byte channel, byte program) {
-  trySwitchPresetByPC(program);
+  if (channel == globalSettings.channel ){
+    trySwitchPresetByPC(program);
+  }
 }
 
 void setupMidiPresetHandlers() {

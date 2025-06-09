@@ -49,6 +49,9 @@ void processWebSerialConfig() {
             doc["bleEnabled"] = globalSettings.bleEnabled;
             doc["activePreset"] = activePreset;
 
+            // Add firmware version
+            doc["firmwareVersion"] = FIRMWARE_VERSION;
+
             // Add all presets to response
             JsonArray arr = doc.createNestedArray("presets");
             for (int i = 0; i < 8; ++i) {

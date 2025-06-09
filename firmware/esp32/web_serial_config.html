@@ -35,6 +35,7 @@
 </head>
 <body>
   <h2>MIDI Biodata Configurator</h2>
+  <div id="firmwareVersion" style="margin-bottom:1em;color:#2a4d8f;font-weight:bold;"></div>
   <button id="connectBtn">Connect Serial</button>
   <div class="section">
     <h3 class="section-title">Global Settings</h3>
@@ -225,6 +226,8 @@
         writer = port.writable.getWriter();
         reader = port.readable.getReader();
         log("Serial connected", "INFO");
+        // Automatically read all settings after connecting
+        await sendJson({ cmd: "read" });
         readSerialLoop();
       } catch (e) {
         log("Serial connection failed: " + e, "ERROR");
@@ -268,6 +271,11 @@
     }
 
     function updateForm(obj) {
+      // Update firmware version display
+      if (obj.firmwareVersion !== undefined) {
+        document.getElementById('firmwareVersion').textContent =
+          "Firmware Version: " + obj.firmwareVersion;
+      }
       // Update global settings
       if (typeof obj !== "object") return;
       if (obj.thr !== undefined) document.getElementById('threshold').value = obj.thr;
