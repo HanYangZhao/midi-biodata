@@ -12,7 +12,7 @@ MIDI_CREATE_INSTANCE(Adafruit_USBD_MIDI, usb_midi, usbMIDI);
 // Instantiate the MIDI object on Serial1 for ESP32
 MIDI_CREATE_INSTANCE(HardwareSerial, Serial1, MIDI);
 void handleControlChange(byte channel, byte control, byte value) {
-  if (channel == globalSettings.channel ){
+  if (channel == globalSettings.inputChannel ){
     trySwitchPresetByCC(control);
   }
 }
@@ -70,14 +70,14 @@ void handleMidiClock() {
 #if BLE_MIDI_SUPPORTED
 // BLE MIDI Control Change callback
 void bleControlChangeCallback(uint8_t channel, uint8_t controller, uint8_t value, uint16_t timestamp) {
-  if (channel == globalSettings.channnel ){
+  if (channel == globalSettings.inputChannel ){
     trySwitchPresetByCC(controller);
   }
 }
 
 // BLE MIDI Program Change callback
 void bleProgramChangeCallback(uint8_t channel, uint8_t program, uint16_t timestamp) {
-  if (channel == globalSettings.channnel ){
+  if (channel == globalSettings.inputChannel ){
     trySwitchPresetByPC(program);
   }
 }
@@ -120,7 +120,7 @@ void bleMidiLoop() {
 #endif
 
 void handleNoteOn(byte channel, byte note, byte velocity) {
-  if (channel == globalSettings.channel ){
+  if (channel == globalSettings.inputChannel ){
     trySwitchPresetByNote(note);
     // Add any additional note-on logic here if needed
   }
@@ -137,7 +137,7 @@ void handleUsbMidiClock() {
 }
 
 void handleProgramChange(byte channel, byte program) {
-  if (channel == globalSettings.channel ){
+  if (channel == globalSettings.inputChannel ){
     trySwitchPresetByPC(program);
   }
 }

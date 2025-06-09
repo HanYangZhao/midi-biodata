@@ -36,7 +36,8 @@ GlobalSettings globalSettings = {
   .ccEnable = 0,
   .droneVel = 40,
   .droneMode = 0,
-  .droneChannel = 1
+  .droneChannel = 1,
+  .inputChannel = 1
 };
 
 PresetSettings presets[8] = {
@@ -117,6 +118,7 @@ void printGlobals() {
   Serial.print("ccEnable: "); Serial.println(globalSettings.ccEnable);
   Serial.print("droneVel: "); Serial.println(globalSettings.droneVel);
   Serial.print("droneMode: "); Serial.println(globalSettings.droneMode);
+  Serial.print("inputChannel: "); Serial.println(globalSettings.inputChannel);
   for (int i = 0; i < 8; ++i) {
     Serial.print("Preset "); Serial.print(i); Serial.print(": scale=");
     Serial.print(presets[i].scale); Serial.print(", rootNote=");

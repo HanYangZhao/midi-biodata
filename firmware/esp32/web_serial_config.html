@@ -41,25 +41,42 @@
     <h3 class="section-title">Global Settings</h3>
     <form id="globalForm">
       <label>Threshold: <input type="number" step="0.01" id="threshold" min="1.61" max="3.71" required></label>
-      <label>MIDI Channel: <input type="number" id="channel" min="1" max="16" required></label>
-      <label>Max Brightness: <input type="number" id="maxbrightness" min="0" max="255" required></label>
-      <label>BPM: <input type="number" id="bpm" min="20" max="300" value="120" required></label>
-      <label>Bars per Chord: <input type="number" id="barsperchord" min="1" max="16" value="4" required></label>
-      <label>Drone Enabled: <input type="checkbox" id="droneEnabled"></label>
-      <label>Drone Mode:
-        <select id="droneMode">
-          <option value="0">Free Drone</option>
-          <option value="1">BPM Drone (sync to MIDI clock)</option>
-        </select>
-      </label>
-      <label>Note Min (A0=21): <input type="number" id="noteMin" min="0" max="127" required></label>
-      <label>Note Max (C8=108): <input type="number" id="noteMax" min="0" max="127" required></label>
-      <label>Velocity Min: <input type="number" id="velocityMin" min="1" max="127" required></label>
-      <label>Velocity Max: <input type="number" id="velocityMax" min="1" max="127" required></label>
-      <label>Drone Velocity: <input type="number" id="droneVel" min="1" max="127" required></label>
-      <label>Drone MIDI Channel: <input type="number" id="droneChannel" min="1" max="16" required></label>
-      <label>BLE MIDI Enabled: <input type="checkbox" id="bleEnabled"></label>
-      <label>CC Messaging Enabled: <input type="checkbox" id="ccEnable"></label>
+      <label>Max LED Brightness: <input type="number" id="maxbrightness" min="0" max="255" required></label>
+      <div style="display:flex; gap:1.5em; margin-top:2em; margin-bottom:1em;">
+        <div style="flex:1; min-width:220px; border:1px solid #dde3ea; border-radius:6px; padding:1em;">
+          <strong>BLE/CC</strong>
+          <label>BLE MIDI Enabled: <input type="checkbox" id="bleEnabled"></label>
+          <label>CC Messaging Enabled: <input type="checkbox" id="ccEnable"></label>
+        </div>
+        <div style="flex:1; min-width:220px; border:1px solid #dde3ea; border-radius:6px; padding:1em;">
+          <strong>Drone</strong>
+          <label>BPM: <input type="number" id="bpm" min="20" max="300" value="120" required></label>
+          <label>Bars per Chord: <input type="number" id="barsperchord" min="1" max="16" value="4" required></label>
+          <label>Drone Enabled: <input type="checkbox" id="droneEnabled"></label>
+          <label>Drone Mode:
+            <select id="droneMode">
+              <option value="0">Free Drone</option>
+              <option value="1">BPM Drone (sync to MIDI clock)</option>
+            </select>
+          </label>
+          <label>Drone Velocity: <input type="number" id="droneVel" min="1" max="127" required></label>
+        </div>
+        <div style="flex:1; min-width:220px; border:1px solid #dde3ea; border-radius:6px; padding:1em;">
+          <strong>Notes</strong>
+          <label>Note Min (A0=21): <input type="number" id="noteMin" min="0" max="127" required></label>
+          <label>Note Max (C8=108): <input type="number" id="noteMax" min="0" max="127" required></label>
+          <label>Velocity Min: <input type="number" id="velocityMin" min="1" max="127" required></label>
+          <label>Velocity Max: <input type="number" id="velocityMax" min="1" max="127" required></label>
+        </div>
+        <div style="flex:1; min-width:220px; border:1px solid #dde3ea; border-radius:6px; padding:1em;">
+          <strong>MIDI Channel</strong>
+          <div style="margin-top:1em; margin-bottom:0.5em;"><u>Input</u></div>
+          <label>Input MIDI  (used to trigger preset): <input type="number" id="inputChannel" min="1" max="16" required></label>
+          <div style="margin-top:1em; margin-bottom:0.5em;"><u>Outputs</u></div>
+          <label>Drone MIDI Channel: <input type="number" id="droneChannel" min="1" max="16" required></label>
+          <label>Notes MIDI Channel: <input type="number" id="channel" min="1" max="16" required></label>
+        </div>
+      </div>
       <div class="btn-row">
         <button type="button" id="readBtn">Read All</button>
         <button type="submit">Save All</button>
@@ -129,7 +146,7 @@
           </label>
           <label>MIDI Note Trigger:
             <input type="number" id="preset-note-${idx}" min="-1" max="127" step="1">
-            <span style="font-size:0.9em;color:#666;">(-1 disables, must be less than min or greater than max)</span>
+            <span style="font-size:0.9em;color:#666;">(-1 disables)</span>
           </label>
           <label>Drone Chord Quality:
             <select id="preset-quality-${idx}">
@@ -280,6 +297,7 @@
       if (typeof obj !== "object") return;
       if (obj.thr !== undefined) document.getElementById('threshold').value = obj.thr;
       if (obj.chn !== undefined) document.getElementById('channel').value = obj.chn;
+      if (obj.inputChannel !== undefined) document.getElementById('inputChannel').value = obj.inputChannel;
       if (obj.maxb !== undefined) document.getElementById('maxbrightness').value = obj.maxb;
       if (obj.bpm !== undefined) document.getElementById('bpm').value = obj.bpm;
       if (obj.barperch !== undefined) document.getElementById('barsperchord').value = obj.barperch;
@@ -360,6 +378,7 @@
       collectPresetDataFromUI();
       const thr = parseFloat(document.getElementById('threshold').value);
       const chn = parseInt(document.getElementById('channel').value, 10);
+      const inputChannel = parseInt(document.getElementById('inputChannel').value, 10);
       const maxb = parseInt(document.getElementById('maxbrightness').value, 10);
       const bpm = parseInt(document.getElementById('bpm').value, 10);
       const barperch = parseInt(document.getElementById('barsperchord').value, 10);
@@ -377,6 +396,7 @@
         cmd: "save_all",
         thr,
         chn,
+        inputChannel,
         maxb,
         bpm,
         barperch,
@@ -401,6 +421,7 @@
       const settings = {
         thr: parseFloat(document.getElementById('threshold').value),
         chn: parseInt(document.getElementById('channel').value, 10),
+        inputChannel: parseInt(document.getElementById('inputChannel').value, 10),
         maxb: parseInt(document.getElementById('maxbrightness').value, 10),
         bpm: parseInt(document.getElementById('bpm').value, 10),
         barperch: parseInt(document.getElementById('barsperchord').value, 10),
@@ -441,6 +462,7 @@
         if (obj.thr !== undefined) document.getElementById('threshold').value = obj.thr;
         if (obj.chn !== undefined) document.getElementById('channel').value = obj.chn;
         if (obj.maxb !== undefined) document.getElementById('maxbrightness').value = obj.maxb;
+        if (obj.inputChannel !== undefined) document.getElementById('inputChannel').value = obj.inputChannel;
         if (obj.bpm !== undefined) document.getElementById('bpm').value = obj.bpm;
         if (obj.barperch !== undefined) document.getElementById('barsperchord').value = obj.barperch;
         if (obj.drone !== undefined) document.getElementById('droneEnabled').checked = !!obj.drone;

@@ -69,7 +69,7 @@ void loop() {
   checkControl();
   // Serial.println("[CHECKPOINT] checkControl finished");
 
-  checkLED();
+  // checkLED();
 
   midiChordTick();
 

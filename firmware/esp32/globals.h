@@ -47,6 +47,7 @@ typedef struct {
   uint8_t droneVel; // velocity for drone notes
   uint8_t droneMode; // 0 = freeDrone, 1 = BPMDrone
   uint8_t droneChannel; // MIDI channel for drone notes
+  uint8_t inputChannel; // MIDI channel for preset trigger
 } GlobalSettings;
 
 typedef struct {
