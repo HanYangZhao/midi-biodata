@@ -69,6 +69,11 @@
     <h3 class="section-title">Presets</h3>
     <div class="preset-list" id="presetList"></div>
   </div>
+  <div class="btn-row">
+    <button type="button" id="downloadSettingsBtn">Download Settings (JSON)</button>
+    <input type="file" id="uploadSettingsInput" accept="application/json" style="display:none;">
+    <button type="button" id="uploadSettingsBtn">Upload Settings (JSON)</button>
+  </div>
   <h3>Serial Log</h3>
   <textarea id="log" readonly></textarea>
   <script>
@@ -379,6 +384,83 @@
         bleEnabled,
         presets: presetData
       });
+    };
+
+    // Download settings as JSON
+    document.getElementById('downloadSettingsBtn').onclick = () => {
+      // Gather current settings from UI
+      collectPresetDataFromUI();
+      const settings = {
+        thr: parseFloat(document.getElementById('threshold').value),
+        chn: parseInt(document.getElementById('channel').value, 10),
+        maxb: parseInt(document.getElementById('maxbrightness').value, 10),
+        bpm: parseInt(document.getElementById('bpm').value, 10),
+        barperch: parseInt(document.getElementById('barsperchord').value, 10),
+        drone: document.getElementById('droneEnabled').checked ? 1 : 0,
+        droneMode: parseInt(document.getElementById('droneMode').value, 10),
+        noteMin: parseInt(document.getElementById('noteMin').value, 10),
+        noteMax: parseInt(document.getElementById('noteMax').value, 10),
+        velocityMin: parseInt(document.getElementById('velocityMin').value, 10),
+        velocityMax: parseInt(document.getElementById('velocityMax').value, 10),
+        droneVel: parseInt(document.getElementById('droneVel').value, 10),
+        droneChannel: parseInt(document.getElementById('droneChannel').value, 10),
+        ccEnable: document.getElementById('ccEnable').checked ? 1 : 0,
+        bleEnabled: document.getElementById('bleEnabled').checked ? 1 : 0,
+        presets: presetData
+      };
+      const blob = new Blob([JSON.stringify(settings, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = "midi-biodata-settings.json";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    };
+
+    // Upload settings from JSON
+    document.getElementById('uploadSettingsBtn').onclick = () => {
+      document.getElementById('uploadSettingsInput').click();
+    };
+    document.getElementById('uploadSettingsInput').onchange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const text = await file.text();
+      try {
+        const obj = JSON.parse(text);
+        // Update UI fields and presetData from JSON
+        if (obj.thr !== undefined) document.getElementById('threshold').value = obj.thr;
+        if (obj.chn !== undefined) document.getElementById('channel').value = obj.chn;
+        if (obj.maxb !== undefined) document.getElementById('maxbrightness').value = obj.maxb;
+        if (obj.bpm !== undefined) document.getElementById('bpm').value = obj.bpm;
+        if (obj.barperch !== undefined) document.getElementById('barsperchord').value = obj.barperch;
+        if (obj.drone !== undefined) document.getElementById('droneEnabled').checked = !!obj.drone;
+        if (obj.droneMode !== undefined) document.getElementById('droneMode').value = obj.droneMode;
+        if (obj.noteMin !== undefined) document.getElementById('noteMin').value = obj.noteMin;
+        if (obj.noteMax !== undefined) document.getElementById('noteMax').value = obj.noteMax;
+        if (obj.velocityMin !== undefined) document.getElementById('velocityMin').value = obj.velocityMin;
+        if (obj.velocityMax !== undefined) document.getElementById('velocityMax').value = obj.velocityMax;
+        if (obj.droneVel !== undefined) document.getElementById('droneVel').value = obj.droneVel;
+        if (obj.droneChannel !== undefined) document.getElementById('droneChannel').value = obj.droneChannel;
+        if (obj.ccEnable !== undefined) document.getElementById('ccEnable').checked = !!obj.ccEnable;
+        if (obj.bleEnabled !== undefined) document.getElementById('bleEnabled').checked = !!obj.bleEnabled;
+        if (obj.presets && Array.isArray(obj.presets)) {
+          presetData = obj.presets.map((p, i) => ({
+            scale: p.scale ?? 0,
+            rootNote: p.rootNote ?? 0,
+            midiCCTrigger: p.midiCCTrigger ?? (20 + i),
+            midiPCTrigger: p.midiPCTrigger ?? i,
+            midiNoteTrigger: p.midiNoteTrigger ?? -1,
+            droneChordQ: p.droneChordQ ?? 0
+          }));
+        }
+        updatePresetUI();
+        log("Settings JSON loaded into UI", "INFO");
+      } catch (err) {
+        log("Invalid JSON: " + err, "ERROR");
+      }
+      e.target.value = "";
     };
 
     // Initial UI render
