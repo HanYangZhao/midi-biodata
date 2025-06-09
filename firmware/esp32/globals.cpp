@@ -122,7 +122,8 @@ void printGlobals() {
     Serial.print(presets[i].scale); Serial.print(", rootNote=");
     Serial.print(presets[i].rootNote); Serial.print(", midiCCTrigger=");
     Serial.print(presets[i].midiCCTrigger); Serial.print(", midiPCTrigger=");
-    Serial.print(presets[i].midiPCTrigger); Serial.print(", droneChordQuality=");
+    Serial.print(presets[i].midiPCTrigger); Serial.print(", midiNoteTrigger=");
+    Serial.print(presets[i].midiNoteTrigger); Serial.print(", droneChordQuality=");
     Serial.println(presets[i].droneChordQ == 1 ? "Seventh" : "Triad");
   }
   Serial.println("-----------------------------");

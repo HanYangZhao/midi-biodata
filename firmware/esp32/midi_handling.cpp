@@ -257,8 +257,7 @@ void trySwitchPresetByPC(uint8_t pcNum) {
 void trySwitchPresetByNote(uint8_t noteNum) {
   for (int i = 0; i < 8; ++i) {
     if (presets[i].midiNoteTrigger != -1 &&
-        presets[i].midiNoteTrigger == noteNum &&
-        (noteNum < globalSettings.noteMin || noteNum > globalSettings.noteMax)) {
+        presets[i].midiNoteTrigger == noteNum) {
       if (activePreset != i) {
         activePreset = i;
         Serial.print("[PRESET] Switched to preset (note) ");
