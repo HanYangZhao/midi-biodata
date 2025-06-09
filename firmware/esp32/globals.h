@@ -22,8 +22,8 @@
 // Constants
 #define SCHEMA 0x02
 
-// Scale constants
-const int scaleCount = 9;
+ // Scale constants
+const int scaleCount = 11;
 const int scaleLen = 13; // maximum scale length plus 1 for 'used length'
 
 // Scale arrays

@@ -13,6 +13,8 @@ int scale[scaleCount][scaleLen] = {
   {7, 0, 2, 3, 5, 7, 8, 10},                  // Aeolian (Minor)
   {7, 0, 1, 3, 5, 6, 8, 10},                  // Locrian
   {7, 0, 1, 4, 5, 7, 8, 11},                  // Raga Bhairav (double harmonic major)
+  {8, 0, 2, 4, 7, 9, 0, 2, 4},                // Major Pentatonic (padded for chord logic)
+  {8, 0, 3, 5, 7, 10, 0, 3, 5}                // Minor Pentatonic (padded for chord logic)
 };
 
 GlobalSettings globalSettings = {
