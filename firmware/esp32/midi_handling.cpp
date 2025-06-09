@@ -398,10 +398,27 @@ void midiChordTick() {
   // Chord notes: triad or seventh
   int chordNotes[4];
   int chordLen = 3;
-  chordNotes[0] = presets[activePreset].rootNote + scale[presets[activePreset].scale][1];
-  chordNotes[1] = presets[activePreset].rootNote + scale[presets[activePreset].scale][3];
-  chordNotes[2] = presets[activePreset].rootNote + scale[presets[activePreset].scale][5];
-  if (presets[activePreset].droneChordQ == 1) {
+  if (presets[activePreset].droneChordQ == 0) { // triad
+    chordNotes[0] = presets[activePreset].rootNote + scale[presets[activePreset].scale][1];
+    chordNotes[1] = presets[activePreset].rootNote + scale[presets[activePreset].scale][3];
+    chordNotes[2] = presets[activePreset].rootNote + scale[presets[activePreset].scale][5];
+    chordLen = 3;
+  } else if (presets[activePreset].droneChordQ == 1) { // seventh
+    chordNotes[0] = presets[activePreset].rootNote + scale[presets[activePreset].scale][1];
+    chordNotes[1] = presets[activePreset].rootNote + scale[presets[activePreset].scale][3];
+    chordNotes[2] = presets[activePreset].rootNote + scale[presets[activePreset].scale][5];
+    chordNotes[3] = presets[activePreset].rootNote + scale[presets[activePreset].scale][7];
+    chordLen = 4;
+  } else if (presets[activePreset].droneChordQ == 2) { // seventh sus 4
+    chordNotes[0] = presets[activePreset].rootNote + scale[presets[activePreset].scale][1];
+    chordNotes[1] = presets[activePreset].rootNote + scale[presets[activePreset].scale][4];
+    chordNotes[2] = presets[activePreset].rootNote + scale[presets[activePreset].scale][5];
+    chordNotes[3] = presets[activePreset].rootNote + scale[presets[activePreset].scale][7];
+    chordLen = 4;
+  } else if (presets[activePreset].droneChordQ == 3) { // seventh sus 2
+    chordNotes[0] = presets[activePreset].rootNote + scale[presets[activePreset].scale][1];
+    chordNotes[1] = presets[activePreset].rootNote + scale[presets[activePreset].scale][2];
+    chordNotes[2] = presets[activePreset].rootNote + scale[presets[activePreset].scale][5];
     chordNotes[3] = presets[activePreset].rootNote + scale[presets[activePreset].scale][7];
     chordLen = 4;
   }
@@ -438,10 +455,27 @@ void triggerChord() {
   // Chord: triad or seventh, root note played one octave down
   int chordNotes[4];
   int chordLen = 3;
-  chordNotes[0] = (presets[activePreset].rootNote + scale[presets[activePreset].scale][1]) - 12; // root one octave down
-  chordNotes[1] = presets[activePreset].rootNote + scale[presets[activePreset].scale][3];
-  chordNotes[2] = presets[activePreset].rootNote + scale[presets[activePreset].scale][5];
-  if (presets[activePreset].droneChordQ == 1) {
+  if (presets[activePreset].droneChordQ == 0) { // triad
+    chordNotes[0] = (presets[activePreset].rootNote + scale[presets[activePreset].scale][1]) - 12; // root one octave down
+    chordNotes[1] = presets[activePreset].rootNote + scale[presets[activePreset].scale][3];
+    chordNotes[2] = presets[activePreset].rootNote + scale[presets[activePreset].scale][5];
+    chordLen = 3;
+  } else if (presets[activePreset].droneChordQ == 1) { // seventh
+    chordNotes[0] = (presets[activePreset].rootNote + scale[presets[activePreset].scale][1]) - 12;
+    chordNotes[1] = presets[activePreset].rootNote + scale[presets[activePreset].scale][3];
+    chordNotes[2] = presets[activePreset].rootNote + scale[presets[activePreset].scale][5];
+    chordNotes[3] = presets[activePreset].rootNote + scale[presets[activePreset].scale][7];
+    chordLen = 4;
+  } else if (presets[activePreset].droneChordQ == 2) { // seventh sus 4
+    chordNotes[0] = (presets[activePreset].rootNote + scale[presets[activePreset].scale][1]) - 12;
+    chordNotes[1] = presets[activePreset].rootNote + scale[presets[activePreset].scale][4];
+    chordNotes[2] = presets[activePreset].rootNote + scale[presets[activePreset].scale][5];
+    chordNotes[3] = presets[activePreset].rootNote + scale[presets[activePreset].scale][7];
+    chordLen = 4;
+  } else if (presets[activePreset].droneChordQ == 3) { // seventh sus 2
+    chordNotes[0] = (presets[activePreset].rootNote + scale[presets[activePreset].scale][1]) - 12;
+    chordNotes[1] = presets[activePreset].rootNote + scale[presets[activePreset].scale][2];
+    chordNotes[2] = presets[activePreset].rootNote + scale[presets[activePreset].scale][5];
     chordNotes[3] = presets[activePreset].rootNote + scale[presets[activePreset].scale][7];
     chordLen = 4;
   }
@@ -486,10 +520,27 @@ void triggerChordFreeDrone() {
   lastDroneLen = 0;
   int chordNotes[4];
   int chordLen = 3;
-  chordNotes[0] = (presets[activePreset].rootNote + scale[presets[activePreset].scale][1]) - 12;
-  chordNotes[1] = presets[activePreset].rootNote + scale[presets[activePreset].scale][3];
-  chordNotes[2] = presets[activePreset].rootNote + scale[presets[activePreset].scale][5];
-  if (presets[activePreset].droneChordQ == 1) {
+  if (presets[activePreset].droneChordQ == 0) { // triad
+    chordNotes[0] = (presets[activePreset].rootNote + scale[presets[activePreset].scale][1]) - 12;
+    chordNotes[1] = presets[activePreset].rootNote + scale[presets[activePreset].scale][3];
+    chordNotes[2] = presets[activePreset].rootNote + scale[presets[activePreset].scale][5];
+    chordLen = 3;
+  } else if (presets[activePreset].droneChordQ == 1) { // seventh
+    chordNotes[0] = (presets[activePreset].rootNote + scale[presets[activePreset].scale][1]) - 12;
+    chordNotes[1] = presets[activePreset].rootNote + scale[presets[activePreset].scale][3];
+    chordNotes[2] = presets[activePreset].rootNote + scale[presets[activePreset].scale][5];
+    chordNotes[3] = presets[activePreset].rootNote + scale[presets[activePreset].scale][7];
+    chordLen = 4;
+  } else if (presets[activePreset].droneChordQ == 2) { // seventh sus 4
+    chordNotes[0] = (presets[activePreset].rootNote + scale[presets[activePreset].scale][1]) - 12;
+    chordNotes[1] = presets[activePreset].rootNote + scale[presets[activePreset].scale][4];
+    chordNotes[2] = presets[activePreset].rootNote + scale[presets[activePreset].scale][5];
+    chordNotes[3] = presets[activePreset].rootNote + scale[presets[activePreset].scale][7];
+    chordLen = 4;
+  } else if (presets[activePreset].droneChordQ == 3) { // seventh sus 2
+    chordNotes[0] = (presets[activePreset].rootNote + scale[presets[activePreset].scale][1]) - 12;
+    chordNotes[1] = presets[activePreset].rootNote + scale[presets[activePreset].scale][2];
+    chordNotes[2] = presets[activePreset].rootNote + scale[presets[activePreset].scale][5];
     chordNotes[3] = presets[activePreset].rootNote + scale[presets[activePreset].scale][7];
     chordLen = 4;
   }

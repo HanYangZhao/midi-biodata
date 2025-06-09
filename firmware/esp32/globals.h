@@ -54,7 +54,7 @@ typedef struct {
   int8_t midiCCTrigger;    // MIDI Control Change (CC) number that triggers this preset (0-127, -1 disables)
   int8_t midiPCTrigger;    // MIDI Program Change (PC) number that triggers this preset (0-127, -1 disables)
   int8_t midiNoteTrigger;  // MIDI Note number that triggers this preset (<min or >max, -1 disables)
-  uint8_t droneChordQ; // 0 = triad, 1 = seventh chord
+  uint8_t droneChordQ; // 0 = triad, 1 = seventh chord, 2 = seventh sus 4, 3 = seventh sus 2
 } PresetSettings;
 
 extern GlobalSettings globalSettings;
