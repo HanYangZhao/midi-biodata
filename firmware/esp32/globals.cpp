@@ -1,5 +1,5 @@
 // Firmware version
-const char* FIRMWARE_VERSION = "1.0.0";
+const char* FIRMWARE_VERSION = "1.1.0";
 
 #include "globals.h"
 #include <MIDI.h>
