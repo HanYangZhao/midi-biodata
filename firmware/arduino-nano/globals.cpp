@@ -22,7 +22,7 @@ uint16_t currScale = 0;
 uint16_t maxBrightness = 190;
 uint16_t channel = 1;
 float throld = 2.3;
-float thrMin = 1.61;
+float thrMin = 1.00;
 float thrMax = 3.71;
 uint8_t root = 0;
 

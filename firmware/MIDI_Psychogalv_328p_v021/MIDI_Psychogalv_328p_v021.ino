@@ -43,7 +43,7 @@ volatile byte index = 0;
 volatile unsigned long samples[samplesize];
 
 float threshold = 2.3;  //change threshold multiplier
-float threshMin = 1.61; //scaling threshold min
+float threshMin = 1.00; //scaling threshold min
 float threshMax = 3.71; //scaling threshold max
 float knobMin = 1;
 float knobMax = 1023;

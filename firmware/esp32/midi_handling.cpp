@@ -213,7 +213,7 @@ void setNote(int value, int velocity, long duration, int notechannel, bool debug
 }
 
 void trySwitchPresetByCC(uint8_t ccNum) {
-  for (int i = 0; i < 8; ++i) {
+  for (int i = 0; i < 12; ++i) {
     if (presets[i].midiCCTrigger == -1) continue;
     if (presets[i].midiCCTrigger == ccNum) {
       if (activePreset != i) {
@@ -235,7 +235,7 @@ void trySwitchPresetByCC(uint8_t ccNum) {
 }
 
 void trySwitchPresetByPC(uint8_t pcNum) {
-  for (int i = 0; i < 8; ++i) {
+  for (int i = 0; i < 12; ++i) {
     if (presets[i].midiPCTrigger == -1) continue;
     if (presets[i].midiPCTrigger == pcNum) {
       if (activePreset != i) {
@@ -255,7 +255,7 @@ void trySwitchPresetByPC(uint8_t pcNum) {
 // Switch preset by MIDI note (noteNum)
 // Only triggers if midiNoteTrigger != -1 and (noteNum < noteMin or noteNum > noteMax)
 void trySwitchPresetByNote(uint8_t noteNum) {
-  for (int i = 0; i < 8; ++i) {
+  for (int i = 0; i < 12; ++i) {
     if (presets[i].midiNoteTrigger != -1 &&
         presets[i].midiNoteTrigger == noteNum) {
       if (activePreset != i) {

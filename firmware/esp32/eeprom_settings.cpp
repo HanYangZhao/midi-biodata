@@ -27,7 +27,7 @@ void readSettings() {
   globalSettings.inputChannel = prefs.getUChar("inputChannel", 1); // default channel 1
 
   // Load presets
-  for (int i = 0; i < 8; ++i) {
+  for (int i = 0; i < 12; ++i) {
     char key[32];
     snprintf(key, sizeof(key), "preset%d_scale", i);
     presets[i].scale = prefs.getUChar(key, i);
@@ -71,7 +71,7 @@ void saveSettings() {
   prefs.putUChar("inputChannel", globalSettings.inputChannel);
 
   // Save presets
-  for (int i = 0; i < 8; ++i) {
+  for (int i = 0; i < 12; ++i) {
     char key[32];
     snprintf(key, sizeof(key), "preset%d_scale", i);
     prefs.putUChar(key, presets[i].scale);
@@ -113,7 +113,7 @@ void initializeEEPROM() {
   globalSettings.droneMode = 0;
   globalSettings.inputChannel = 1;
 
-  for (int i = 0; i < 8; ++i) {
+  for (int i = 0; i < 12; ++i) {
     presets[i].scale = i;
     presets[i].rootNote = 0;
     presets[i].midiCCTrigger = -1;

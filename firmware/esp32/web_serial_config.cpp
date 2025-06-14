@@ -62,7 +62,7 @@ void processWebSerialConfig() {
 
                 // Add all presets to response
                 JsonArray arr = doc.createNestedArray("presets");
-                for (int i = 0; i < 8; ++i) {
+                for (int i = 0; i < 12; ++i) {
                     JsonObject p = arr.createNestedObject();
                     p["scale"] = presets[i].scale;
                     p["rootNote"] = presets[i].rootNote;
@@ -103,7 +103,7 @@ void processWebSerialConfig() {
                 // Update all presets from JSON array
                 if (doc.containsKey("presets") && doc["presets"].is<JsonArray>()) {
                     JsonArray arr = doc["presets"].as<JsonArray>();
-                    int count = arr.size() < 8 ? arr.size() : 8;
+                    int count = arr.size() < 12 ? arr.size() : 12;
                     for (int i = 0; i < count; ++i) {
                         JsonObject p = arr[i];
                         presets[i].scale = p["scale"] | presets[i].scale;
@@ -121,7 +121,7 @@ void processWebSerialConfig() {
                 if (doc.containsKey("index") && doc.containsKey("presets") && doc["presets"].is<JsonArray>()) {
                     int idx = doc["index"];
                     JsonArray arr = doc["presets"].as<JsonArray>();
-                    if (idx >= 0 && idx < 8 && arr.size() > 0) {
+                    if (idx >= 0 && idx < 12 && arr.size() > 0) {
                         JsonObject p = arr[0];
                         presets[idx].scale = p["scale"] | presets[idx].scale;
                         presets[idx].rootNote = p["rootNote"] | presets[idx].rootNote;
@@ -139,7 +139,7 @@ void processWebSerialConfig() {
                 } else if (doc.containsKey("presets") && doc["presets"].is<JsonArray>()) {
                     // Update all presets from JSON array (legacy/multi)
                     JsonArray arr = doc["presets"].as<JsonArray>();
-                    int count = arr.size() < 8 ? arr.size() : 8;
+                    int count = arr.size() < 12 ? arr.size() : 12;
                     for (int i = 0; i < count; ++i) {
                         JsonObject p = arr[i];
                         presets[i].scale = p["scale"] | presets[i].scale;
@@ -156,7 +156,7 @@ void processWebSerialConfig() {
             } else if (command == "activate_preset") {
                 // Set the active preset index from JSON
                 int idx = doc["index"] | 0;
-                if (idx >= 0 && idx < 8) {
+                if (idx >= 0 && idx < 12) {
                     activePreset = idx;
                     Serial.print("{\"status\":\"active_preset_set\",\"index\":");
                     Serial.print(idx);

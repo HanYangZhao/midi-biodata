@@ -40,9 +40,10 @@ GlobalSettings globalSettings = {
   .inputChannel = 1
 };
 
-PresetSettings presets[8] = {
+PresetSettings presets[12] = {
   {0, 0, -1, -1, -1, 0}, {1, 0, -1, -1, -1, 0}, {2, 0, -1, -1, -1, 0}, {3, 0, -1, -1, -1, 0},
-  {4, 0, -1, -1, -1, 0}, {5, 0, -1, -1, -1, 0}, {6, 0, -1, -1, -1, 0}, {7, 0, -1, -1, -1, 0}
+  {4, 0, -1, -1, -1, 0}, {5, 0, -1, -1, -1, 0}, {6, 0, -1, -1, -1, 0}, {7, 0, -1, -1, -1, 0},
+  {8, 0, -1, -1, -1, 0}, {9, 0, -1, -1, -1, 0}, {10, 0, -1, -1, -1, 0}, {11, 0, -1, -1, -1, 0}
 };
 
 int activePreset = 0; // Default to preset 1
@@ -119,7 +120,7 @@ void printGlobals() {
   Serial.print("droneVel: "); Serial.println(globalSettings.droneVel);
   Serial.print("droneMode: "); Serial.println(globalSettings.droneMode);
   Serial.print("inputChannel: "); Serial.println(globalSettings.inputChannel);
-  for (int i = 0; i < 8; ++i) {
+  for (int i = 0; i < 12; ++i) {
     Serial.print("Preset "); Serial.print(i); Serial.print(": scale=");
     Serial.print(presets[i].scale); Serial.print(", rootNote=");
     Serial.print(presets[i].rootNote); Serial.print(", midiCCTrigger=");

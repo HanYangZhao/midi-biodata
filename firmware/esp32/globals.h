@@ -60,8 +60,8 @@ typedef struct {
 } PresetSettings;
 
 extern GlobalSettings globalSettings;
-extern PresetSettings presets[8];
-extern int activePreset; // Index of the currently active preset (0-7)
+extern PresetSettings presets[12];
+extern int activePreset; // Index of the currently active preset (0-11)
 
 // Legacy and hardware variables
 extern const byte interruptPin;
