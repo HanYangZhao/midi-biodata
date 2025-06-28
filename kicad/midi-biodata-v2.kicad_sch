@@ -919,167 +919,6 @@
 				)
 			)
 		)
-		(symbol "Device:R_Potentiometer"
-			(pin_names
-				(offset 1.016) hide)
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "RV"
-				(at -4.445 0 90)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Value" "R_Potentiometer"
-				(at -2.54 0 90)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" ""
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" "~"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "Potentiometer"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_keywords" "resistor variable"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_fp_filters" "Potentiometer*"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "R_Potentiometer_0_1"
-				(polyline
-					(pts
-						(xy 2.54 0) (xy 1.524 0)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 1.143 0) (xy 2.286 0.508) (xy 2.286 -0.508) (xy 1.143 0)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type outline)
-					)
-				)
-				(rectangle
-					(start 1.016 2.54)
-					(end -1.016 -2.54)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(symbol "R_Potentiometer_1_1"
-				(pin passive line
-					(at 0 3.81 270)
-					(length 1.27)
-					(name "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 3.81 0 180)
-					(length 1.27)
-					(name "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 0 -3.81 90)
-					(length 1.27)
-					(name "3"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "3"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-		)
 		(symbol "dk_Logic-Buffers-Drivers-Receivers-Transceivers:SN74LVC1G07DBVR"
 			(pin_names
 				(offset 0)
@@ -4172,16 +4011,6 @@
 	)
 	(wire
 		(pts
-			(xy 140.97 101.6) (xy 142.24 101.6)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "ea42617e-d0a4-4e3d-9de3-4095441ab91c")
-	)
-	(wire
-		(pts
 			(xy 144.78 46.99) (xy 148.59 46.99)
 		)
 		(stroke
@@ -4347,7 +4176,7 @@
 			)
 		)
 	)
-	(global_label "POT_1"
+	(global_label "MIDI_IN"
 		(shape input)
 		(at 129.54 153.67 0)
 		(effects
@@ -4659,26 +4488,6 @@
 		(uuid "e9084e35-44de-4b5f-a3f0-c778588184b3")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 208.28 57.15 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "POT_1"
-		(shape input)
-		(at 142.24 101.6 0)
-		(effects
-			(font
-				(size 0.9906 0.9906)
-			)
-			(justify left)
-		)
-		(uuid "eab1b1cc-47a7-4821-9f9a-a404977d580e")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 142.24 101.6 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5429,7 +5238,7 @@
 				(hide yes)
 			)
 		)
-		(property "Value" "+5V"
+		(property "Value" "VCC"
 			(at 132.08 26.67 0)
 			(effects
 				(font
@@ -6178,7 +5987,7 @@
 				(hide yes)
 			)
 		)
-		(property "Value" "+5V"
+		(property "Value" "VCC"
 			(at 281.94 27.94 0)
 			(effects
 				(font
@@ -7134,7 +6943,7 @@
 				(hide yes)
 			)
 		)
-		(property "Value" "+5V"
+		(property "Value" "VCC"
 			(at 135.636 163.83 0)
 			(effects
 				(font
@@ -7303,7 +7112,7 @@
 				(hide yes)
 			)
 		)
-		(property "Value" "+5V"
+		(property "Value" "VCC"
 			(at 115.824 57.15 0)
 			(effects
 				(font
@@ -7674,7 +7483,7 @@
 				(hide yes)
 			)
 		)
-		(property "Value" "+5V"
+		(property "Value" "VCC"
 			(at 135.382 166.624 0)
 			(effects
 				(font
@@ -7798,88 +7607,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:R_Potentiometer")
-		(at 137.16 101.6 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "7dfdabc9-c8fb-48d8-b777-3c6427332eb7")
-		(property "Reference" "RV1"
-			(at 134.62 100.3299 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Value" "Pot 10K"
-			(at 134.62 102.8699 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Footprint" "Potentiometer_THT:Potentiometer_Alps_RK09K_Single_Vertical"
-			(at 137.16 101.6 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 137.16 101.6 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Potentiometer"
-			(at 137.16 101.6 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "LCSC" ""
-			(at 137.16 101.6 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "ffea0431-3943-44ae-942b-a5ecb49d17b2")
-		)
-		(pin "3"
-			(uuid "d6518d8d-bf55-437e-a6d3-2ac231cafb2a")
-		)
-		(pin "1"
-			(uuid "62db8a11-6fca-4b27-aa15-75a0dc0747a0")
-		)
-		(instances
-			(project ""
-				(path "/0696d548-26ae-48fa-b73e-c6b82482150e"
-					(reference "RV1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:+5V")
 		(at 209.55 49.53 90)
 		(unit 1)
@@ -7897,7 +7624,7 @@
 				(hide yes)
 			)
 		)
-		(property "Value" "+5V"
+		(property "Value" "VCC"
 			(at 204.978 49.784 0)
 			(effects
 				(font
@@ -7969,7 +7696,7 @@
 				)
 			)
 		)
-		(property "Footprint" "poma:3.5mm_stereo_jack_PJ320B"
+		(property "Footprint" "poma:3.5mm_stereo_jack_PJ320B_THRU"
 			(at 220.98 33.02 0)
 			(effects
 				(font
@@ -8206,7 +7933,7 @@
 				)
 			)
 		)
-		(property "Footprint" "poma:3.5mm_stereo_jack_PJ320B"
+		(property "Footprint" "poma:3.5mm_stereo_jack_PJ320B_THRU"
 			(at 167.64 53.34 0)
 			(effects
 				(font
@@ -8344,7 +8071,7 @@
 				(hide yes)
 			)
 		)
-		(property "Value" "+5V"
+		(property "Value" "VCC"
 			(at 157.48 32.004 0)
 			(effects
 				(font
@@ -8386,136 +8113,6 @@
 			(project "midi-biodata-v2"
 				(path "/0696d548-26ae-48fa-b73e-c6b82482150e"
 					(reference "#PWR05")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "midi-biodata-v2-rescue:GND")
-		(at 137.16 105.41 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "c5f64a06-44b9-44bd-bfda-70bdea548d53")
-		(property "Reference" "#PWR017"
-			(at 137.16 111.76 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 137.16 109.22 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 137.16 105.41 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 137.16 105.41 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 137.16 105.41 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "baa6b7ce-dff6-427c-b8c0-56e500decd14")
-		)
-		(instances
-			(project "midi-biodata-v2"
-				(path "/0696d548-26ae-48fa-b73e-c6b82482150e"
-					(reference "#PWR017")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "midi-biodata-v2-rescue:+5V")
-		(at 137.16 97.79 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "cfb81e41-0f7d-451f-9705-d72e0c8000c9")
-		(property "Reference" "#PWR08"
-			(at 137.16 101.6 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "+5V"
-			(at 137.16 94.234 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 137.16 97.79 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 137.16 97.79 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 137.16 97.79 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "97ffcab9-589b-48fc-afbd-152f920289b0")
-		)
-		(instances
-			(project "midi-biodata-v2"
-				(path "/0696d548-26ae-48fa-b73e-c6b82482150e"
-					(reference "#PWR08")
 					(unit 1)
 				)
 			)
@@ -8625,7 +8222,7 @@
 				)
 			)
 		)
-		(property "Footprint" "poma:3.5mm_stereo_jack_PJ320B"
+		(property "Footprint" "poma:3.5mm_stereo_jack_PJ320B_THRU"
 			(at 142.24 83.82 0)
 			(effects
 				(font
