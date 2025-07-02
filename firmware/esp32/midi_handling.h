@@ -1,19 +1,29 @@
 #ifndef MIDI_HANDLING_H
 #define MIDI_HANDLING_H
 
-#include <Adafruit_TinyUSB.h>
-#include <MIDI.h>
-#include "globals.h"
-#include "led_control.h"
-
 #if !defined(CONFIG_IDF_TARGET_ESP32S2) && !defined(ARDUINO_ESP32S2_DEV)
-#include <BLEMidi.h>
 #define BLE_MIDI_SUPPORTED 1
 #else
 #define BLE_MIDI_SUPPORTED 0
 #endif
 
- // Expose usb_midi and usbMIDI for use in other files
+#include <Adafruit_TinyUSB.h>
+#include <MIDI.h>
+#include "globals.h"
+#include "led_control.h"
+
+#if BLE_MIDI_SUPPORTED
+#include <BLEDevice.h>
+#include <BLEUtils.h>
+#include <BLEServer.h>
+#include <BLE2902.h>
+
+// BLE MIDI characteristic and connection state
+extern BLECharacteristic *pCharacteristic;
+extern bool deviceConnected;
+#endif
+
+// Expose usb_midi and usbMIDI for use in other files
 extern Adafruit_USBD_MIDI usb_midi;
 extern midi::MidiInterface<midi::SerialMIDI<Adafruit_USBD_MIDI>> usbMIDI;
 extern MIDI_NAMESPACE::MidiInterface<MIDI_NAMESPACE::SerialMIDI<HardwareSerial>> MIDI;
@@ -39,9 +49,6 @@ void trySwitchPresetByNote(uint8_t noteNum);
 #if BLE_MIDI_SUPPORTED
 void bleMidiInit();
 void bleMidiLoop();
-#else
-inline void bleMidiInit() {}
-inline void bleMidiLoop() {}
 #endif
 
 #endif // MIDI_HANDLING_H

@@ -1,8 +1,85 @@
 #include "midi_handling.h"
 
+// BLE MIDI support conditional
 #if BLE_MIDI_SUPPORTED
-// BLE MIDI enable flag is now in globalSettings.bleEnabled
-#endif
+#include <BLEDevice.h>
+#include <BLEUtils.h>
+#include <BLEServer.h>
+#include <BLE2902.h>
+
+// BLE MIDI characteristic and connection state
+BLECharacteristic *pCharacteristic = nullptr;
+bool deviceConnected = false;
+
+// BLE MIDI UUIDs
+#define SERVICE_UUID        "03B80E5A-EDE8-4B33-A751-6CE34EC4C700"
+#define CHARACTERISTIC_UUID "7772E5DB-3868-4112-A1A9-F2669D106BF3"
+
+class MyServerCallbacks: public BLEServerCallbacks {
+    void onConnect(BLEServer* pServer) {
+      deviceConnected = true;
+      Serial.println("[BLE MIDI] Device connected");
+    }
+    void onDisconnect(BLEServer* pServer) {
+      deviceConnected = false;
+      Serial.println("[BLE MIDI] Device disconnected");
+    }
+};
+
+// BLE Characteristic Callbacks for receiving MIDI over BLE
+class MyCharacteristicCallbacks: public BLECharacteristicCallbacks {
+    void onWrite(BLECharacteristic* pCharacteristic) override {
+        String rxValue = pCharacteristic->getValue();
+        if (rxValue.length() < 5) return; // BLE MIDI packet is 5 bytes
+        uint8_t data[5];
+        rxValue.getBytes(data, 5);
+        // Parse MIDI packet (assumes 5-byte BLE MIDI packet)
+        // data[2]: status byte, data[3]: note/control, data[4]: velocity/value
+        uint8_t status = data[2] & 0xF0;
+        uint8_t channel = (data[2] & 0x0F) + 1;
+        uint8_t data1 = data[3];
+        uint8_t data2 = data[4];
+        if (status == 0x90) { // Note On
+            setNote(data1, data2, 0, channel, false);
+        } else if (status == 0x80) { // Note Off
+            // Implement note off handling if needed
+        } else if (status == 0xB0) { // Control Change
+            setControl(data1, data2, data2, 0);
+        }
+    }
+};
+
+void bleMidiInit() {
+    Serial.println("[BLE MIDI] Before BLEDevice::init");
+    BLEDevice::init("MIDI_BIODATA");
+    Serial.println("[BLE MIDI] After BLEDevice::init");
+    BLEServer *pServer = BLEDevice::createServer();
+    Serial.println("[BLE MIDI] After createServer");
+    pServer->setCallbacks(new MyServerCallbacks());
+    BLEService *pService = pServer->createService(BLEUUID(SERVICE_UUID));
+    Serial.println("[BLE MIDI] After createService");
+    pCharacteristic = pService->createCharacteristic(
+        BLEUUID(CHARACTERISTIC_UUID),
+        BLECharacteristic::PROPERTY_READ   |
+        BLECharacteristic::PROPERTY_WRITE  |
+        BLECharacteristic::PROPERTY_NOTIFY |
+        BLECharacteristic::PROPERTY_WRITE_NR
+    );
+    Serial.println("[BLE MIDI] After createCharacteristic");
+    pCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
+    pCharacteristic->addDescriptor(new BLE2902());
+    pService->start();
+    Serial.println("[BLE MIDI] After service start");
+    BLEAdvertising *pAdvertising = pServer->getAdvertising();
+    pAdvertising->addServiceUUID(pService->getUUID());
+    pAdvertising->start();
+    Serial.println("[BLE MIDI] BLE MIDI advertising started");
+}
+
+void bleMidiLoop() {
+    // No periodic BLE MIDI logic needed for server mode
+}
+#endif // BLE_MIDI_SUPPORTED
 
 // Define the USB MIDI object
 Adafruit_USBD_MIDI usb_midi;
@@ -67,57 +144,6 @@ void handleMidiClock() {
   }
 }
 
-#if BLE_MIDI_SUPPORTED
-// BLE MIDI Control Change callback
-void bleControlChangeCallback(uint8_t channel, uint8_t controller, uint8_t value, uint16_t timestamp) {
-  if (channel == globalSettings.inputChannel ){
-    trySwitchPresetByCC(controller);
-  }
-}
-
-// BLE MIDI Program Change callback
-void bleProgramChangeCallback(uint8_t channel, uint8_t program, uint16_t timestamp) {
-  if (channel == globalSettings.inputChannel ){
-    trySwitchPresetByPC(program);
-  }
-}
-
-// BLE MIDI Start callback
-void bleStartCallback(uint16_t timestamp) {
-  handleMidiStart();
-}
-
-// BLE MIDI Clock callback
-void bleClockCallback(uint16_t timestamp) {
-  handleMidiClock();
-}
-
-// BLE MIDI initialization and loop
-void bleMidiInit() {
-    BLEMidiClient.begin("Midi client");
-    BLEMidiClient.setControlChangeCallback(bleControlChangeCallback);
-    BLEMidiClient.setProgramChangeCallback(bleProgramChangeCallback);
-    BLEMidiClient.setStartCallback(bleStartCallback);
-    BLEMidiClient.setClockCallback(bleClockCallback);
-}
-
-void bleMidiLoop() {
-    if (!bleEnabled) return;
-    if (!BLEMidiClient.isConnected()) {
-        int nDevices = BLEMidiClient.scan();
-        if (nDevices > 0) {
-            if (BLEMidiClient.connect(0)) {
-                Serial.println("BLE MIDI Connection established");
-            } else {
-                Serial.println("BLE MIDI Connection failed");
-                delay(3000);
-            }
-        }
-    }
-}
-#else
-// BLE MIDI not supported: do not define stubs here, only in the header
-#endif
 
 void handleNoteOn(byte channel, byte note, byte velocity) {
   if (channel == globalSettings.inputChannel ){
@@ -188,16 +214,22 @@ void setNote(int value, int velocity, long duration, int notechannel, bool debug
         MIDI.sendNoteOn(value, velocity, notechannel);
         usbMIDI.sendNoteOn(value, velocity, notechannel);
 #if BLE_MIDI_SUPPORTED
-        if (globalSettings.bleEnabled && BLEMidiClient.isConnected()) {
-          BLEMidiClient.noteOn(notechannel, value, velocity);
+        // BLE MIDI Note On
+        if (globalSettings.bleEnabled && deviceConnected && pCharacteristic) {
+          uint8_t midiPacket[5] = {0x80, 0x80, (uint8_t)(0x90 | ((notechannel-1) & 0x0F)), (uint8_t)value, (uint8_t)velocity};
+          pCharacteristic->setValue(midiPacket, 5);
+          pCharacteristic->notify();
         }
 #endif
       } else {
         MIDI.sendNoteOn(value, velocity, globalSettings.channel);
         usbMIDI.sendNoteOn(value, velocity, globalSettings.channel);
 #if BLE_MIDI_SUPPORTED
-        if (globalSettings.bleEnabled && BLEMidiClient.isConnected()) {
-          BLEMidiClient.noteOn(globalSettings.channel, value, velocity);
+        // BLE MIDI Note On
+        if (globalSettings.bleEnabled && deviceConnected && pCharacteristic) {
+          uint8_t midiPacket[5] = {0x80, 0x80, (uint8_t)(0x90 | ((globalSettings.channel-1) & 0x0F)), (uint8_t)value, (uint8_t)velocity};
+          pCharacteristic->setValue(midiPacket, 5);
+          pCharacteristic->notify();
         }
 #endif
       }
@@ -336,16 +368,22 @@ void checkNote() {
           MIDI.sendNoteOff(noteArray[i].value, 0, noteArray[i].channel);
           usbMIDI.sendNoteOff(noteArray[i].value, 0, noteArray[i].channel);
 #if BLE_MIDI_SUPPORTED
-          if (bleEnabled && BLEMidiClient.isConnected()) {
-            BLEMidiClient.noteOff(noteArray[i].channel, noteArray[i].value, 0);
-          }
+        // BLE MIDI Note Off
+        if (globalSettings.bleEnabled && deviceConnected && pCharacteristic) {
+          uint8_t midiPacket[5] = {0x80, 0x80, (uint8_t)(0x90 | ((noteArray[i].channel-1) & 0x0F)), (uint8_t)noteArray[i].value, 0};
+          pCharacteristic->setValue(midiPacket, 5);
+          pCharacteristic->notify();
+        }
 #endif
         } else {
           MIDI.sendNoteOff(noteArray[i].value, 0, globalSettings.channel);
           usbMIDI.sendNoteOff(noteArray[i].value, 0, globalSettings.channel);
 #if BLE_MIDI_SUPPORTED
-          if (globalSettings.bleEnabled && BLEMidiClient.isConnected()) {
-            BLEMidiClient.noteOff(globalSettings.channel, noteArray[i].value, 0);
+          // BLE MIDI Note Off
+          if (globalSettings.bleEnabled && deviceConnected && pCharacteristic) {
+            uint8_t midiPacket[5] = {0x80, 0x80, (uint8_t)(0x90 | ((globalSettings.channel-1) & 0x0F)), (uint8_t)noteArray[i].value, 0};
+            pCharacteristic->setValue(midiPacket, 5);
+            pCharacteristic->notify();
           }
 #endif
         }
@@ -502,8 +540,11 @@ void triggerChord() {
     MIDI.sendNoteOn(chordNotes[i], globalSettings.droneVel, globalSettings.droneChannel);
     usbMIDI.sendNoteOn(chordNotes[i], globalSettings.droneVel, globalSettings.droneChannel);
 #if BLE_MIDI_SUPPORTED
-    if (globalSettings.bleEnabled && BLEMidiClient.isConnected()) {
-      BLEMidiClient.noteOn(globalSettings.channel, chordNotes[i], globalSettings.droneVel);
+    // BLE MIDI Note On (server mode)
+    if (globalSettings.bleEnabled && deviceConnected && pCharacteristic) {
+      uint8_t midiPacket[5] = {0x80, 0x80, (uint8_t)(0x90 | ((globalSettings.channel-1) & 0x0F)), (uint8_t)chordNotes[i], (uint8_t)globalSettings.droneVel};
+      pCharacteristic->setValue(midiPacket, 5);
+      pCharacteristic->notify();
     }
 #endif
     lastDroneNotes[i] = chordNotes[i];
@@ -520,8 +561,11 @@ void triggerChordFreeDrone() {
       MIDI.sendNoteOff(lastDroneNotes[i], 0, globalSettings.droneChannel);
       usbMIDI.sendNoteOff(lastDroneNotes[i], 0, globalSettings.droneChannel);
 #if BLE_MIDI_SUPPORTED
-      if (globalSettings.bleEnabled && BLEMidiClient.isConnected()) {
-        BLEMidiClient.noteOff(globalSettings.channel, lastDroneNotes[i], 0);
+      // BLE MIDI Note Off (server mode)
+      if (globalSettings.bleEnabled && deviceConnected && pCharacteristic) {
+        uint8_t midiPacket[5] = {0x80, 0x80, (uint8_t)(0x90 | ((globalSettings.channel-1) & 0x0F)), (uint8_t)lastDroneNotes[i], 0};
+        pCharacteristic->setValue(midiPacket, 5);
+        pCharacteristic->notify();
       }
 #endif
     }
@@ -557,8 +601,11 @@ void triggerChordFreeDrone() {
     MIDI.sendNoteOn(chordNotes[i], globalSettings.droneVel, globalSettings.droneChannel);
     usbMIDI.sendNoteOn(chordNotes[i], globalSettings.droneVel, globalSettings.droneChannel);
 #if BLE_MIDI_SUPPORTED
-    if (globalSettings.bleEnabled && BLEMidiClient.isConnected()) {
-      BLEMidiClient.noteOn(globalSettings.channel, chordNotes[i], globalSettings.droneVel);
+    // BLE MIDI Note On (server mode)
+    if (globalSettings.bleEnabled && deviceConnected && pCharacteristic) {
+      uint8_t midiPacket[5] = {0x80, 0x80, (uint8_t)(0x90 | ((globalSettings.channel-1) & 0x0F)), (uint8_t)chordNotes[i], (uint8_t)globalSettings.droneVel};
+      pCharacteristic->setValue(midiPacket, 5);
+      pCharacteristic->notify();
     }
 #endif
     lastDroneNotes[i] = chordNotes[i];

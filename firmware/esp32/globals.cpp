@@ -1,8 +1,17 @@
 // Firmware version
-const char* FIRMWARE_VERSION = "1.1.0";
+const char* FIRMWARE_VERSION = "1.2.0";
 
 #include "globals.h"
 #include <MIDI.h>
+
+// MIDI TX/RX pin definitions for ESP32S3 and ESP32S2
+#if defined(ARDUINO_ESP32S2_DEV)
+#define MIDI_SERIAL1_TX_PIN 10 
+#define MIDI_SERIAL1_RX_PIN 9  
+#else
+#define MIDI_SERIAL1_TX_PIN 17
+#define MIDI_SERIAL1_RX_PIN 18
+#endif
 
 
 // Scale arrays

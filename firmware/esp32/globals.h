@@ -8,8 +8,8 @@
 // =====================
 // Hardware Pin Defines
 // =====================
-#define MIDI_SERIAL1_TX_PIN 10   // MIDI TX pin
-#define MIDI_SERIAL1_RX_PIN 9    // MIDI RX pin
+#define MIDI_SERIAL1_TX_PIN 17   // MIDI TX pin
+#define MIDI_SERIAL1_RX_PIN 18   // MIDI RX pin
 #define INTERRUPT_PIN      7     // Interrupt pin
 #define KNOB_PIN           0     // Analog knob pin (A0)
 #define LED_PIN_1          1
