@@ -7,6 +7,7 @@
 	(title_block
 		(title "MIDI Biodata Sonification Device ")
 		(date "2018-01-12")
+		(rev "0.3")
 		(company "13-37.org electronics")
 	)
 	(lib_symbols
@@ -7485,7 +7486,7 @@
 				)
 			)
 		)
-		(property "Value" "220R"
+		(property "Value" "33R"
 			(at 276.86 35.306 90)
 			(effects
 				(font
@@ -7520,7 +7521,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C25091"
+		(property "LCSC" "C25105"
 			(at 278.13 31.75 90)
 			(effects
 				(font
@@ -9284,8 +9285,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "220R"
-			(at 236.982 45.974 0)
+		(property "Value" "10R"
+			(at 236.982 43.688 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9320,7 +9321,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C25091"
+		(property "LCSC" "C25077"
 			(at 236.22 38.1 0)
 			(effects
 				(font

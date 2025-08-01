@@ -5690,7 +5690,7 @@
 				)
 			)
 		)
-		(property "Value" "220R"
+		(property "Value" "33R"
 			(at 0 1.17 180)
 			(layer "F.Fab")
 			(uuid "5350aa98-9dbb-4094-b6f3-819727805f93")
@@ -5740,7 +5740,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25091"
+		(property "LCSC" "C25105"
 			(at 0 0 180)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -9874,7 +9874,7 @@
 				)
 			)
 		)
-		(property "Value" "220R"
+		(property "Value" "10R"
 			(at 0 1.17 0)
 			(layer "F.Fab")
 			(uuid "00bda15a-f2bb-422b-8d53-1547f5c675b9")
@@ -9924,7 +9924,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C25091"
+		(property "LCSC" "C25077"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -10806,7 +10806,7 @@
 		(descr "Capacitor SMD 0402 (1005 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: IPC-SM-782 page 76, https://www.pcb-3d.com/wordpress/wp-content/uploads/ipc-sm-782a_amendment_1_and_2.pdf), generated with kicad-footprint-generator")
 		(tags "capacitor")
 		(property "Reference" "C6"
-			(at 1.175 -1.56 360)
+			(at 1.175 -1.56 0)
 			(layer "F.SilkS")
 			(uuid "3647adc4-be9f-469c-8f14-7192e87e32d5")
 			(effects
@@ -10817,7 +10817,7 @@
 			)
 		)
 		(property "Value" "0.1uF"
-			(at 0 1.16 360)
+			(at 0 1.16 0)
 			(layer "F.Fab")
 			(uuid "cd30a9ca-131a-42fe-ba99-94d5c93d88d6")
 			(effects
@@ -10985,7 +10985,7 @@
 			(uuid "f3b74fd0-4339-4bc8-89f7-ef96b064c05a")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 0 360)
+			(at 0 0 0)
 			(layer "F.Fab")
 			(uuid "f8f0e046-9627-4d6d-9b61-3e4eb0af197a")
 			(effects
@@ -11248,7 +11248,7 @@
 			(uuid "f9cb4877-6153-44e5-b941-4c644e8afd03")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 1.27 360)
+			(at 0 1.27 0)
 			(layer "F.Fab")
 			(uuid "562cea1c-6570-43bc-92b6-2ce0162b3a8c")
 			(effects
@@ -12458,7 +12458,7 @@
 			(justify left bottom)
 		)
 	)
-	(gr_text "Bio-sonification Board V0.2\nHanz Tech"
+	(gr_text "Bio-sonification Board V0.3\nHanz Tech"
 		(at 21.844 -2.54 0)
 		(layer "F.SilkS")
 		(uuid "cd59226f-f2e0-4084-b4b7-7eee38c1be2b")
