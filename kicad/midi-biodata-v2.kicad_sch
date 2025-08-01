@@ -5920,6 +5920,25 @@
 		)
 		(uuid eefb2f23-5b95-4d98-9cc8-8af4745090b0)
 	)
+	(text_box "__FINAL REVIEW - Optoisolator Integration for 555 Timer__\n\n__Complete Circuit Design:__\n\nPower Side (555 Circuit):\nVCC (5V) → 330Ω resistor → Opto LED Anode\nOpto LED Cathode → 555 Output Pin\n\nIsolated Side (ESP32 Circuit):\nESP32 3.3V → 4.7kΩ pull-up → Opto Collector\nOpto Emitter → ESP32 Ground\nESP32 GPIO ← Opto Collector (signal input)\n```\n\n__Signal Flow Verification:__\n\n- __555 HIGH__ → LED OFF → Phototransistor OFF → GPIO = HIGH (3.3V)\n- __555 LOW__ → LED ON → Phototransistor ON → GPIO = LOW (0V)\n- __RISING edge interrupt__ triggers on 555 LOW→HIGH transition ✓\n\n__Noise Reduction Achieved:__\n\n- __Galvanic isolation__ between body electrodes and ESP32\n- __Ground loop elimination__\n- __60Hz noise rejection__ from power line coupling\n- __ESD protection__ for ESP32\n\n__Firmware Compatibility:__\n\n- __No code changes required__ - existing RISING edge interrupt works correctly\n- __555 astable output__ → frequency modulation preserved\n- __Galvanic conductance measurement__ accuracy maintained\n\n__Component Values:__\n\n- __330Ω resistor__: Limits LED current to ~10mA (safe for 555)\n- __4.7kΩ pull-up__: Provides strong HIGH state with fast switching\n- __PC817 optocoupler__: Standard, inexpensive, sufficient speed\n\n__Layout Notes:__\n\n- Place optoisolator near ESP32\n- Keep LED side traces away from sensitive analog circuits\n- Use separate ground planes connected at single point\n\n__Result:__ Clean, isolated signal that maintains your existing firmware functionality while providing complete electrical isolation.\n"
+		(exclude_from_sim no)
+		(at 303.53 49.53 0)
+		(size 116.84 100.33)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(fill
+			(type none)
+		)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left top)
+		)
+		(uuid "59fa1bb1-a805-4aa7-ab89-d67e1d80cac6")
+	)
 	(text "Galvanometer"
 		(exclude_from_sim no)
 		(at 130.81 21.59 0)
